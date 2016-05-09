@@ -148,7 +148,9 @@ module.exports = function(MeanUser) {
               escaped = encodeURI(escaped);
               // We are sending the payload inside the token
               var token = jwt.sign(escaped, config.secret);
-              return res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
+              console.log(3);
+              return res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken});
+              console.log(4);
             } catch (err) {
               switch (err.code) {
                   case 11000:
@@ -174,7 +176,7 @@ module.exports = function(MeanUser) {
                       return res.status(400).json(modelErrors);
                   }
               }
-              return res.status(400);
+              return res.status(400).end();
             }
           });
         },
