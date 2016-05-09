@@ -76,9 +76,13 @@ var UserSchema = new Schema({
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   profile: {},
+  status: String,
   gender: String,
   birthday: Date,
-  icon: Schema.Types.ObjectId,
+  icon: {
+    type: Schema.Types.ObjectId,
+    ref: 'FsFile'
+  },
   settings: Object
 });
 

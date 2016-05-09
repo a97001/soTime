@@ -9,11 +9,13 @@ var mongoose = require('mongoose'),
   fs = require('fs'),
   // sharp = require('sharp'),
   co = require('co'),
+  moment = require('moment'),
   formidable = require('formidable'),
   _ = require('lodash');
 
 var Group = mongoose.model('Group'),
   Event = mongoose.model('Event'),
+  Notification = mongoose.model('Notification'),
   FsFile = mongoose.model('FsFile'),
   User = mongoose.model('User');
 
@@ -21,8 +23,8 @@ var ObjectId = mongoose.Types.ObjectId;
 Grid.mongo = mongoose.mongo;
 var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 
-var zlib = require('zlib');
-var gzip = zlib.createGzip();
+// var zlib = require('zlib');
+// var gzip = zlib.createGzip();
 
 module.exports = function(FloorPlan) {
 
@@ -290,19 +292,111 @@ module.exports = function(FloorPlan) {
         },
 
         createGroupInvitation: (req, res) => {
+          co(function*() {
+            let group = req.group,
+              inviteeType = req.body.inviteeType,
+              invitee = req.body.invitee;
+            if (req.groupPrivilege === 'host') {
+              req.checkBody('inviteeType', 'inviteeType must be "user", "link" or "email"').notEmpty().isIn(['user', 'email', 'link']);
+              if (inviteeType === 'user') {
+                req.checkBody('invitee', 'inviteeType must be valid ObjectId').notEmpty().isMongoId();
+              } else if (invitee === 'email') {
+                req.checkBody('invitee', 'inviteeType must be valid email address').notEmpty().isEmail();
+              }
+              var err = req.validationErrors();
+              if (err) {
+                return res.status(400).json(err);
+              }
+              if (inviteeType === 'user') {
+                let inviteeUser = yield User.findOne({_id: invitee}).lean().exec();
+                if (!inviteeUser) throw new Error({msg: 'No such user', code: 400});
+                yield Group.update({_id: group._id, host: req.user._id, invitations: {$ne: inviteeUser._id}, members: {$ne: inviteeUser._id}, followers: {$ne: inviteeUser._id}}, {$addToSet: {invitations: inviteeUser._id}, $inc: {invitationCounter: 1}}).exec();
+                return res.status(201).end();
+              } else if (inviteeType === 'email') {
+
+              } else {
+                let currentMoment = moment.utc(),
+                  issueDate = Moment().toDate(),
+                  expiryDate = Moment().add(3, 'days').toDate();
+                let newNotification = new Notification({
+                  type: 'GroupInvitation',
+                  fromUser: req.user._id,
+                  toUser: null,
+                  isSystemMsg: false,
+                  isDelivered: true,
+                  issueDate: issueDate,
+                  expiryDate: expiryDate,
+                  content: {
+                    webLink: '/' + newNotification._id
+                  }
+                });
+                try {
+                  yield newNotification.save();
+                } catch (err) {
+                  throw new Error({msg: err, code: 500});
+                }
+                return res.status(201).json({webLink: newNotification.content.webLink});
+              }
+            } else {
+              throw new Error({msg: 'Forbidden', code: 403});
+            }
+          });
+        },
+
+        makeGroupInvitationDecision: (req, res) => {
+          co(function*() {
+            let group = req.group,
+              decision = req.body.decision;
+            if (req.groupPrivilege === 'invitation') {
+              req.checkBody('decision', 'decision must be "accept" or "reject"').notEmpty().isIn(['accept', 'reject']);
+              var err = req.validationErrors();
+              if (err) {
+                return res.status(400).json(err);
+              }
+              try {
+                if (decision === 'accept') {
+                  yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$addToSet: {members: req.user._id}, $inc: {memberCounter: 1, invitationCounter: -1}}).exec();
+                } else {
+                  yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$pull: {invitations: req.user._id}, $inc: {invitationCounter: -1}}).exec();
+                }
+                return res.status(203).end();
+              } catch (err) {
+                throw new Error({msg: err, code: 500});
+              }
+            } else {
+              throw new Error({msg: 'Forbidden', code: 403});
+            }
+          });
         },
 
         deleteGroupInvitation: (req, res) => {
+          co(function*() {
+            let group = req.group,
+              invitee = req.params.group_userId;
+            if (req.groupPrivilege === 'host') {
+              req.checkParams('group_userId', 'invitee in path must be valid ObjectId').notEmpty().isMongoId();
+              var err = req.validationErrors();
+              if (err) {
+                return res.status(400).json(err);
+              }
+              let inviteeUser = yield User.findOne({_id: invitee}).lean().exec();
+              if (!inviteeUser) throw new Error({msg: 'No such user', code: 400});
+              yield Group.update({_id: group._id, host: req.user._id, invitations: inviteeUser._id, members: {$ne: inviteeUser._id}, followers: {$ne: inviteeUser._id}}, {$pull: {invitations: inviteeUser._id}, $inc: {invitationCounter: -1}}).exec();
+              return res.status(201).end();
+            } else {
+              throw new Error({msg: 'Forbidden', code: 403});
+            }
+          });
         }
     };
 }
 
 function createImage(user, file, type, res, callback) {
-  let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(70).toFormat('jpeg');
+  let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
   let fileWriteStream = fs.createWriteStream(file.path);
   let gridFile = {
       filename: file.name,
-      content_type: fileType,
+      content_type: 'jpg',
       metadata: {
         uploader: user._id,
         type: type,

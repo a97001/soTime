@@ -33,8 +33,10 @@
     app.route('/v1/groups/:group_groupId/invitations')
         .get(auth.requiresLogin, groups.showGroupInvitations)
         .post(auth.requiresLogin, groups.createGroupInvitation)
-        .delete(auth.requiresLogin, groups.deleteGroupInvitation);
+        .put(auth.requiresLogin, groups.makeGroupInvitationDecision);
 
+    app.route('/v1/groups/:group_groupId/invitations/:group_userId')
+      .delete(auth.requiresLogin, groups.deleteGroupInvitation);
 
     // Setting up params
     app.param('group_groupId', groups.group);
