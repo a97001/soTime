@@ -235,27 +235,37 @@ module.exports = function(FloorPlan) {
 
         updateGroupIcon: (req, res, next) => {
           let group = req.group;
-          if (req.groupPrivilege === 'member') {
-            let form = new formidable.IncomingForm();
-            form.parse(req, function(err, fields, files) {
-              let file = files.file;
-              // let type = fields.type;
-              // let documentId = fields.id;
-              let user = new User(req.user);
-
-              if (!file) {
-                return res.status(400).json({error: "Missing files"});
-              }
-              // if (!type || !documentId) {
-              //   return res.status(400).json({error: "Missing type or documentId"});
-              // }
-              createImage(user, file, group, 'icon', res, function(fsFile) {
-                Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
-                  if (err) throw new Error({msg: err, code: 500});
-                  res.status(201).end();
-                });
+          if (req.groupPrivilege === 'member' || req.groupPrivilege === 'host') {
+            // let form = new formidable.IncomingForm();
+            // form.parse(req, function(err, fields, files) {
+            //   let file = files.file;
+            //   // let type = fields.type;
+            //   // let documentId = fields.id;
+            //   let user = new User(req.user);
+            //
+            //   if (!file) {
+            //     return res.status(400).json({error: "Missing files"});
+            //   }
+            //   // if (!type || !documentId) {
+            //   //   return res.status(400).json({error: "Missing type or documentId"});
+            //   // }
+            //   createImage(user, file, group, 'icon', res, function(fsFile) {
+            //     Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
+            //       if (err) throw new Error({msg: err, code: 500});
+            //       res.status(201).end();
+            //     });
+            //   });
+            // });
+            let user = new User(req.user);
+            let body = req.body;
+            let files = body.uploadedDocs;
+            createImage(user, files[0], group, 'icon', res, function(fsFile) {
+              Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
+                if (err) throw new Error({msg: err, code: 500});
+                res.status(201).end();
               });
             });
+
           } else {
             throw new Error({msg: 'Forbidden', code: 403});
           }
@@ -393,7 +403,7 @@ module.exports = function(FloorPlan) {
 
 function createImage(user, file, type, res, callback) {
   let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
-  let fileWriteStream = fs.createWriteStream(file.path);
+  let fileWriteStream = fs.createWriteStream('/uploaded/files/' + user.email + '/' + file.name);
   let gridFile = {
       filename: file.name,
       content_type: 'jpg',
