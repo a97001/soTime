@@ -114,6 +114,7 @@ module.exports = function(MeanUser) {
             user.roles = ['authenticated'];
             try {
               yield user.save();
+              console.log(1);
               var salt = crypto.randomBytes(16).toString('base64');
               var unhashedToken = crypto.randomBytes(20).toString('base64');
               var hashedToken = crypto.pbkdf2Sync(unhashedToken, new Buffer(salt, 'base64'), 10000, 64).toString('base64');
@@ -137,6 +138,7 @@ module.exports = function(MeanUser) {
                 expireAt: currentTime.toDate()
               });
               yield refreshToken.save();
+              console.log(2);
               var payload = req.user.toJSON();
               payload.redirect = req.body.redirect;
               currentTime = moment.utc();
