@@ -148,7 +148,7 @@ module.exports = function(MeanUser) {
               escaped = encodeURI(escaped);
               // We are sending the payload inside the token
               var token = jwt.sign(escaped, config.secret);
-              res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
+              return res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
             } catch (err) {
               switch (err.code) {
                   case 11000:
