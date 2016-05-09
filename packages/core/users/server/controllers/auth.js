@@ -152,6 +152,7 @@ module.exports = function(MeanUser) {
               return res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken});
               console.log(4);
             } catch (err) {
+              console.log(err);
               switch (err.code) {
                   case 11000:
                   case 11001:
@@ -176,7 +177,7 @@ module.exports = function(MeanUser) {
                       return res.status(400).json(modelErrors);
                   }
               }
-              return res.status(400).end();
+              return res.status(400).json(err);
             }
           });
         },
