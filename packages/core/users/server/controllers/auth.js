@@ -114,6 +114,7 @@ module.exports = function(MeanUser) {
             user.roles = ['authenticated'];
             try {
               yield user.save();
+              req.user = user;
               console.log(1);
               var salt = crypto.randomBytes(16).toString('base64');
               var unhashedToken = crypto.randomBytes(20).toString('base64');
@@ -177,7 +178,7 @@ module.exports = function(MeanUser) {
                       return res.status(400).json(modelErrors);
                   }
               }
-              return res.status(400).json(err);
+              return res.status(500).end();
             }
           });
         },
