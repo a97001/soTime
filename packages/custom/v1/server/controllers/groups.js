@@ -8,6 +8,7 @@ var mongoose = require('mongoose'),
   Grid = require('gridfs-stream'),
   fs = require('fs'),
   // sharp = require('sharp'),
+  co = require('co'),
   formidable = require('formidable'),
   _ = require('lodash');
 
@@ -262,9 +263,27 @@ module.exports = function(FloorPlan) {
         },
 
         createGroupFollower: (req, res) => {
+          co(function*() {
+            let group = req.group;
+            if (req.groupPrivilege === 'nonMember') {
+              yield Group.update({_id: group._id, memberCounter: {$gt: 1}, isPublic: true, followers: {$ne: req.user._id}}, {$addToSet: {followers: req.user._id}, $inc: {followerCounter: 1}}).exec();
+              return res.status(201).end();
+            } else {
+              throw new Error({msg: 'Forbidden', code: 403});
+            }
+          });
         },
 
         deleteGroupFollower: (req, res) => {
+          co(function*() {
+            let group = req.group;
+            if (req.groupPrivilege === 'follower') {
+              yield Group.update({_id: group._id, memberCounter: {$gt: 1}, isPublic: true, followers:  req.user._id}, {$pull: {followers: req.user._id}, $inc: {followerCounter: -1}}).exec();
+              return res.status(201).end();
+            } else {
+              throw new Error({msg: 'Forbidden', code: 403});
+            }
+          });
         },
 
         showGroupInvitations: (req, res) => {
