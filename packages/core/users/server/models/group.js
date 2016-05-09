@@ -16,17 +16,26 @@ var GroupsSchema = new Schema({
   		type: Schema.Types.ObjectId,
   		ref: 'User'
   	}],
-  	followings: [{
-  		user: {
+    memberCounter: {
+      type: Number
+    },
+  	followers: [{
+  		// user: {
   			type: Schema.Types.ObjectId,
   			ref: 'User'
-  		},
-  		types: []
+  		// },
+  		// types: []
   	}],
-  	invited: [{
+    followerCounter: {
+      type: Number
+    },
+  	invitations: [{
   		type: Schema.Types.ObjectId,
   		ref: 'User'
   	}],
+    invitationCounter: {
+      type: Number
+    },
   	name: {
   		type: String
   	},
@@ -39,10 +48,10 @@ var GroupsSchema = new Schema({
   		identity: {
   			type: Schema.Types.ObjectId
   		}
-  	},
-  	mute: {
-  		start: Date,
-  		duration: Number
   	}
+  	// mute: {
+  	// 	start: Date,
+  	// 	duration: Number
+  	// }
 });
 mongoose.model('Group', GroupsSchema, 'groups');

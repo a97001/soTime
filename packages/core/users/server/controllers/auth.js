@@ -12,6 +12,7 @@ var mongoose = require('mongoose'),
   templates = require('../template'),
   _ = require('lodash'),
   moment = require('moment'),
+  co = require('co'),
   jwt = require('jsonwebtoken'); //https://npmjs.org/package/node-jsonwebtoken
 
 var User = mongoose.model('User'),
@@ -95,12 +96,11 @@ module.exports = function(MeanUser) {
          * Create user
          */
         create: function(req, res, next) {
+          co(function*() {
             var user = new User(req.body);
-
             user.provider = 'local';
-
             // because we set our user.provider to local our models/user.js validation will always be true
-            req.assert('name', 'You must enter a name').notEmpty();
+            // req.assert('name', 'You must enter a name').notEmpty();
             req.assert('email', 'You must enter a valid email address').isEmail();
             req.assert('password', 'Password must be between 8-20 characters long').len(8, 20);
             req.assert('username', 'Username cannot be more than 20 characters').len(1, 20);
@@ -110,63 +110,71 @@ module.exports = function(MeanUser) {
             if (errors) {
                 return res.status(400).send(errors);
             }
-
             // Hard coded for now. Will address this with the user permissions system in v0.3.5
             user.roles = ['authenticated'];
-            user.save(function(err) {
-                if (err) {
-                    switch (err.code) {
-                        case 11000:
-                        case 11001:
-                        res.status(400).json([{
-                            msg: 'Username already taken',
-                            param: 'username'
-                        }]);
-                        break;
-                        default:
-                        var modelErrors = [];
+            try {
+              yield user.save();
+              var salt = crypto.randomBytes(16).toString('base64');
+              var unhashedToken = crypto.randomBytes(20).toString('base64');
+              var hashedToken = crypto.pbkdf2Sync(unhashedToken, new Buffer(salt, 'base64'), 10000, 64).toString('base64');
+              var isRememberme = false;
+              var currentTime = moment.utc();
+              // if (req.body.isRememberme === true) {
+              //   isRememberme = true;
+                currentTime.add(3, 'years');
+              // } else {
+              //   currentTime.add(1, 'days');
+              // }
+              var refreshToken = new RefreshToken({
+                token: hashedToken,
+                salt: salt,
+                os: req.body.os,
+                deviceName: req.body.deviceName,
+                location: req.body.location,
+                ip: req.ip,
+                browser: req.body.browser,
+                userId: user._id,
+                expireAt: currentTime.toDate()
+              });
+              yield refreshToken.save();
+              var payload = req.user.toJSON();
+              payload.redirect = req.body.redirect;
+              currentTime = moment.utc();
+              payload.iat = currentTime.unix();
+              payload.ext = currentTime.add(1, 'days').unix();
+              var escaped = JSON.stringify(payload);
+              escaped = encodeURI(escaped);
+              // We are sending the payload inside the token
+              var token = jwt.sign(escaped, config.secret);
+              res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
+            } catch (err) {
+              switch (err.code) {
+                  case 11000:
+                  case 11001:
+                  res.status(400).json([{
+                      msg: 'Username already taken',
+                      param: 'username'
+                  }]);
+                  break;
+                  default:
+                  var modelErrors = [];
 
-                        if (err.errors) {
+                  if (err.errors) {
 
-                            for (var x in err.errors) {
-                                modelErrors.push({
-                                    param: x,
-                                    msg: err.errors[x].message,
-                                    value: err.errors[x].value
-                                });
-                            }
+                      for (var x in err.errors) {
+                          modelErrors.push({
+                              param: x,
+                              msg: err.errors[x].message,
+                              value: err.errors[x].value
+                          });
+                      }
 
-                            res.status(400).json(modelErrors);
-                        }
-                    }
-                    return res.status(400);
-                }
-
-                var payload = user;
-                payload.redirect = req.body.redirect;
-                var escaped = JSON.stringify(payload);
-                escaped = encodeURI(escaped);
-                req.logIn(user, function(err) {
-                    if (err) { return next(err); }
-
-                    MeanUser.events.publish({
-                        action: 'created',
-                        user: {
-                            name: req.user.name,
-                            username: user.username,
-                            email: user.email
-                        }
-                    });
-
-                    // We are sending the payload inside the token
-                    var token = jwt.sign(escaped, config.secret, { expiresIn: 60 });
-                    res.json({
-                      token: token,
-                      redirect: config.strategies.landingPage
-                    });
-                });
-                res.status(200);
-            });
+                      return res.status(400).json(modelErrors);
+                  }
+              }
+              return res.status(400);
+            }
+          });
         },
         /**
          * Send User

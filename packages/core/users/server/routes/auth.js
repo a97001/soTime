@@ -13,12 +13,12 @@ var User = mongoose.model('User'),
 module.exports = function(MeanUser, app, auth, database, passport) {
 
   // User routes use users controller
-  var users = require('../controllers/users')(MeanUser);
+  var users = require('../controllers/auth')(MeanUser);
   // app.route('/auth/v1/test')
   //   .get(users.test);
-  app.route('/v1/users/logout')
+  app.route('/v1/auth/logout')
     .post(users.signout);
-  app.route('/v1/users/me')
+  app.route('/v1/auth/me')
     .post(users.me);
 
   // app.route('/v1/users/me/permissions')
@@ -34,7 +34,7 @@ module.exports = function(MeanUser, app, auth, database, passport) {
   app.param('userId', users.user);
 
   // AngularJS route to check for authentication
-  app.route('/v1/users/loggedin')
+  app.route('/v1/auth/loggedin')
     .get(function(req, res) {
       if (!req.isAuthenticated()) return res.send('0');
       User.findById(req.user._id, function(user) {
@@ -45,64 +45,64 @@ module.exports = function(MeanUser, app, auth, database, passport) {
   if(config.strategies.local.enabled)
   {
       // Setting up the users api
-      app.route('/v1/users/register')
+      app.route('/v1/auth/register')
         .post(users.create);
 
-      app.route('/v1/users/forgot-password')
+      app.route('/v1/auth/forgot-password')
         .post(users.forgotpassword);
 
-      app.route('/v1/users/reset/:token')
+      app.route('/v1/auth/reset/:token')
         .post(users.resetpassword);
 
       // Setting the local strategy route
-      app.route('/v1/users/login')
+      app.route('/v1/auth/login')
         .post(passport.authenticate('local', {
           failureFlash: false
         }), function(req, res) {
-                var salt = crypto.randomBytes(16).toString('base64');
-                var unhashedToken = crypto.randomBytes(20).toString('base64');
-                var hashedToken = crypto.pbkdf2Sync(unhashedToken, new Buffer(salt, 'base64'), 10000, 64).toString('base64');
-                var isRememberme = false;
-                var currentTime = moment.utc();
-                if (req.body.isRememberme === true) {
-                  isRememberme = true;
-                  currentTime.add(3, 'years');
-                } else {
-                  currentTime.add(1, 'days');
-                }
-                var refreshToken = new RefreshToken({
-                  token: hashedToken,
-                  salt: salt,
-                  os: req.body.os,
-                  deviceName: req.body.deviceName,
-                  location: req.body.location,
-                  ip: req.ip,
-                  browser: req.body.browser,
-                  userId: req.user._id,
-                  expireAt: currentTime.toDate()
-                });
-                refreshToken.save(function(err, refreshToken) {
-                  if (err) {
-                    console.log(err);
-                    return res.status(500).end();
-                  }
-                  var payload = req.user.toJSON();
-                  payload.redirect = req.body.redirect;
-                  currentTime = moment.utc();
-                  payload.iat = currentTime.unix();
-                  payload.ext = currentTime.add(1, 'days').unix();
-                  var escaped = JSON.stringify(payload);
-                  escaped = encodeURI(escaped);
-                  // We are sending the payload inside the token
-                  var token = jwt.sign(escaped, config.secret);
-                  res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
-                });
+            var salt = crypto.randomBytes(16).toString('base64');
+            var unhashedToken = crypto.randomBytes(20).toString('base64');
+            var hashedToken = crypto.pbkdf2Sync(unhashedToken, new Buffer(salt, 'base64'), 10000, 64).toString('base64');
+            var isRememberme = false;
+            var currentTime = moment.utc();
+            if (req.body.isRememberme === true) {
+              isRememberme = true;
+              currentTime.add(3, 'years');
+            } else {
+              currentTime.add(1, 'days');
+            }
+            var refreshToken = new RefreshToken({
+              token: hashedToken,
+              salt: salt,
+              os: req.body.os,
+              deviceName: req.body.deviceName,
+              location: req.body.location,
+              ip: req.ip,
+              browser: req.body.browser,
+              userId: req.user._id,
+              expireAt: currentTime.toDate()
+            });
+            refreshToken.save(function(err, refreshToken) {
+              if (err) {
+                console.log(err);
+                return res.status(500).end();
+              }
+              var payload = req.user.toJSON();
+              payload.redirect = req.body.redirect;
+              currentTime = moment.utc();
+              payload.iat = currentTime.unix();
+              payload.ext = currentTime.add(1, 'days').unix();
+              var escaped = JSON.stringify(payload);
+              escaped = encodeURI(escaped);
+              // We are sending the payload inside the token
+              var token = jwt.sign(escaped, config.secret);
+              res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken, isRememberme: isRememberme});
+            });
 
         });
   }
 
   // AngularJS route to get config of social buttons
-  app.route('/v1/users/get-config')
+  app.route('/v1/auth/get-config')
     .get(function (req, res) {
       // To avoid displaying unneccesary social logins
       var strategies = config.strategies;
