@@ -435,7 +435,8 @@ function createImage(user, file, type, res, callback) {
   };
   console.log(gridFile);
   let gridFSWriteStream = gfs.createWriteStream(gridFile);
-  gridFSWriteStream.pipe(imageTransformer).pipe(fileWriteStream);
+  imageTransformer.pipe(fileWriteStream);
+  gridFSWriteStream.pipe(imageTransformer);
   gridFSWriteStream.on('error', function (err) {
     removeFile(file, function() {
       console.log(err);
