@@ -436,10 +436,10 @@ function createImage(user, file, type, res, callback) {
 
   let gridFile = {
       filename: file.name,
-      content_type: 'jpg',
+      // content_type: 'jpg',
       metadata: {
         uploader: user._id,
-        type: type,
+        type: type._id,
         desc: "",
         attribute: {}
       },
@@ -472,8 +472,8 @@ function createImage(user, file, type, res, callback) {
       callback(fsFile);
     });
   });
-  // fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
-  fileReadStream.pipe(gridFSWriteStream);
+  fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
+  // fileReadStream.pipe(gridFSWriteStream);
 }
 
 function removeFile(file, callback) {
