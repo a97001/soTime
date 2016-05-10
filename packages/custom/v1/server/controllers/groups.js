@@ -448,7 +448,7 @@ function createImage(user, file, type, res, callback) {
       return res.status(500).end();
     });
   });
-  fileWriteStream.on('error', function (err) {
+  fileReadStream.on('error', function (err) {
     removeFile(file, function() {
       console.log(err);
       return res.status(500).end();
