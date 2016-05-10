@@ -337,6 +337,7 @@ module.exports = function(FloorPlan) {
                   issueDate: issueDate,
                   expiryDate: expiryDate,
                   content: {
+                    group: group._id,
                     webLink: '/' + newNotification._id
                   }
                 });

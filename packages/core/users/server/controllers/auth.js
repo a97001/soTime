@@ -16,6 +16,8 @@ var mongoose = require('mongoose'),
   jwt = require('jsonwebtoken'); //https://npmjs.org/package/node-jsonwebtoken
 
 var User = mongoose.model('User'),
+    Group = mongoose.model('Group'),
+    Notification = mongoose.model('Notification'),
     RefreshToken = mongoose.model('RefreshToken');
 
 /**
@@ -105,6 +107,7 @@ module.exports = function(MeanUser) {
             req.assert('password', 'Password must be between 8-20 characters long').len(8, 20);
             req.assert('username', 'Username cannot be more than 20 characters').len(1, 20);
             req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+            req.assert('invitation', 'invitation must be valid ObjectId').isMongoId();
 
             var errors = req.validationErrors();
             if (errors) {
@@ -151,6 +154,13 @@ module.exports = function(MeanUser) {
               // We are sending the payload inside the token
               var token = jwt.sign(escaped, config.secret);
               console.log(3);
+              if (req.body.invitation) {
+                let notification = null;
+                notification = yield Notification.findOne({_id: req.body.invitation, type: 'GroupInvitation', expiryDate: {lte: new Date()}}).lean().exec();
+                if (notification) {
+                  yield Group.update({_id: notification.content.group, host: {$ne: null}, members: {$ne: user._id}, followers: {$ne: user._id}, invitations: {$ne: user._id}}, {$addToSet: {members: user._id}, $inc: {memberCounter: 1}}).exec();
+                }
+              }
               return res.json({clientId: refreshToken._id, accessToken: token, redirect: req.query.redirect, refreshToken: unhashedToken});
               console.log(4);
             } catch (err) {

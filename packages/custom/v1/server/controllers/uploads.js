@@ -30,9 +30,9 @@ var gfs = Grid(mongoose.connection.db, mongoose.mongo);
 var uploaderOptions = {
   tmpDir: '',
   uploadDir: '',
-  uploadUrl: '/v1/upload/',
+  uploadUrl: '/v1/upload/document/',
   useSSL: true,
-  copyImgAsThumb: true,
+  copyImgAsThumb: false,
   imageVersions: {
     width: 100,
     height: 'auto'
