@@ -260,8 +260,11 @@ module.exports = function(FloorPlan) {
             let body = req.body;
             let files = body.uploadedDocs;
             createImage(user, files[0], group, 'icon', res, function(fsFile) {
+              console.log(123);
+              console.log(fsFile);
               Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
                 if (err) throw new Error({msg: err, code: 500});
+                console.log('finish');
                 res.status(201).end();
               });
             });
@@ -416,6 +419,7 @@ function createImage(user, file, type, res, callback) {
       },
       mode: 'w'
   };
+  console.log(gridFile);
   let gridFSWriteStream = gfs.createWriteStream(gridFile);
   gridFSWriteStream.pipe(imageTransformer).pipe(fileWriteStream);
   gridFSWriteStream.on('error', function (err) {
@@ -437,6 +441,7 @@ function createImage(user, file, type, res, callback) {
     });
   });
   gridFSWriteStream.on('close', function (fsFile) {
+    console.log('test');
     removeFile(file, function() {
       callback(fsFile);
     });
