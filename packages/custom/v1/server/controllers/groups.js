@@ -77,13 +77,16 @@ module.exports = function(FloorPlan) {
 
         allGroups: (req, res, next) => {
           co(function*() {
+            let me = new User(req.user);
             let groups = [];
-            try {
-              groups = yield Group.find({members: req.user._id}, '-icon -followers -invitations').populate('members', 'name').lean().exec();
-            } catch (err) {
-              throw new Error({msg: err, code: 500});
-            }
+            groups = yield Group.find({members: req.user._id}, '-icon -followers -invitations').populate('members', 'name').lean().exec();
             return res.json(groups);
+          }).catch(function (err) {
+            if (!err.code || err.code === 500) {
+              console.log(err);
+              return res.status(500).end();
+            }
+            return res.status(err.code).json({err: err.message});
           });
         },
 
@@ -149,11 +152,11 @@ module.exports = function(FloorPlan) {
             delete group.icon;
             if (groupPrivilege === 'member' || groupPrivilege === 'host') {
             } else if (groupPrivilege === 'follower') {
-              delete group.members;
+              // delete group.members;
               delete group.invitations;
               delete group.authentication.identity;
             } else if (groupPrivilege === 'invitation') {
-              delete group.members;
+              // delete group.members;
               delete group.invitations;
               delete group.authentication.identity;
             } else {
@@ -163,6 +166,12 @@ module.exports = function(FloorPlan) {
               delete group.authentication.identity;
             }
             return res.json(group);
+          }).catch(function (err) {
+            if (!err.code || err.code === 500) {
+              console.log(err);
+              return res.status(500).end();
+            }
+            return res.status(err.code).json({err: err.message});
           });
 
         },
@@ -420,8 +429,10 @@ module.exports = function(FloorPlan) {
 }
 
 function createImage(user, file, type, res, callback) {
+  console.log('/uploaded/files/' + user.email + '/' + file.name);
   let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
   let fileReadStream = fs.createReadStream('/uploaded/files/' + user.email + '/' + file.name);
+
   let gridFile = {
       filename: file.name,
       content_type: 'jpg',
