@@ -472,7 +472,8 @@ function createImage(user, file, type, res, callback) {
       callback(fsFile);
     });
   });
-  fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
+  // fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
+  fileReadStream.pipe(gridFSWriteStream);
 }
 
 function removeFile(file, callback) {
