@@ -234,8 +234,10 @@ module.exports = function(FloorPlan) {
         },
 
         updateGroupIcon: (req, res, next) => {
+          console.log('start');
           let group = req.group;
           if (req.groupPrivilege === 'member' || req.groupPrivilege === 'host') {
+            console.log(req.groupPrivilege);
             // let form = new formidable.IncomingForm();
             // form.parse(req, function(err, fields, files) {
             //   let file = files.file;
@@ -259,6 +261,8 @@ module.exports = function(FloorPlan) {
             let user = new User(req.user);
             let body = req.body;
             let files = body.uploadedDocs;
+            console.log(files);
+            console.log(body);
             createImage(user, files[0], group, 'icon', res, function(fsFile) {
               console.log(123);
               console.log(fsFile);
