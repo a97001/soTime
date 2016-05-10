@@ -421,7 +421,7 @@ module.exports = function(FloorPlan) {
 
 function createImage(user, file, type, res, callback) {
   let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
-  let fileWriteStream = fs.createWriteStream('/uploaded/files/' + user.email + '/' + file.name);
+  let fileReadStream = fs.createReadStream('/uploaded/files/' + user.email + '/' + file.name);
   let gridFile = {
       filename: file.name,
       content_type: 'jpg',
@@ -435,8 +435,7 @@ function createImage(user, file, type, res, callback) {
   };
   console.log(gridFile);
   let gridFSWriteStream = gfs.createWriteStream(gridFile);
-  imageTransformer.pipe(fileWriteStream);
-  gridFSWriteStream.pipe(imageTransformer);
+  fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
   gridFSWriteStream.on('error', function (err) {
     removeFile(file, function() {
       console.log(err);
