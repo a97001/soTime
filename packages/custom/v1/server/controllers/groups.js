@@ -31,25 +31,26 @@ module.exports = function(FloorPlan) {
     return {
 
         group: (req, res, next, id) => {
-          let group = null;
           co(function*() {
-            group = yield Group.findOne({_id: id, members: req.user_id}).exec();
+            let me = new User(req.user);
+            let group = null;
+            group = yield Group.findOne({_id: id, members: me._id}).exec();
             if (group) {
               req.group = group;
-              if (group.host.toString() === req.user._id.toString()) {
+              if (group.host.toString() === me._id.toString()) {
                 req.groupPrivilege = 'host';
               } else {
                 req.groupPrivilege = 'member';
               }
               return next();
             }
-            group = yield Group.findOne({_id: id, isPublic: true, followers: req.user_id}).exec();
+            group = yield Group.findOne({_id: id, isPublic: true, followers: me._id}).exec();
             if (group) {
               req.group = group;
               req.groupPrivilege = 'follower';
               return next();
             }
-            group = yield Group.findOne({_id: id, invitations: req.user_id}).exec();
+            group = yield Group.findOne({_id: id, invitations: me._id}).exec();
             if (group) {
               req.group = group;
               req.groupPrivilege = 'invitation';
@@ -61,7 +62,16 @@ module.exports = function(FloorPlan) {
               req.groupPrivilege = 'nonMember';
               return next();
             }
-            throw new Error({msg: 'Group not exists', code: 404});
+            // throw new Error('404|Group not exist');
+            let err = new Error("Group not exist");
+            err.code = 400;
+            throw err;
+          }).catch(function (err) {
+            if (!err.code || err.code === 500) {
+              console.log(err);
+              return res.status(500).end();
+            }
+            return res.status(err.code).json({err: err.message});
           });
         },
 
