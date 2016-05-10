@@ -430,6 +430,7 @@ module.exports = function(FloorPlan) {
 
 function createImage(user, file, type, res, callback) {
   console.log('/uploaded/files/' + user.email + '/' + file.name);
+  file.path = '/uploaded/files/' + user.email + '/' + file.name;
   let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
   let fileReadStream = fs.createReadStream('/uploaded/files/' + user.email + '/' + file.name);
 
