@@ -241,13 +241,14 @@ module.exports = function(FloorPlan) {
             }
             if (fsFile) {
               res.writeHead(200, {
-                  'Content-Length' : fsFile.length
+                  'Content-Length' : fsFile.length,
+                  'content-Type': fsFile.content_type
               });
               gfs.createReadStream({
                   _id: fsFile._id
               }).pipe(res);
             } else {
-
+              return res.status(404).end();
             }
           });
         },
@@ -257,26 +258,6 @@ module.exports = function(FloorPlan) {
           let group = req.group;
           if (req.groupPrivilege === 'member' || req.groupPrivilege === 'host') {
             console.log(req.groupPrivilege);
-            // let form = new formidable.IncomingForm();
-            // form.parse(req, function(err, fields, files) {
-            //   let file = files.file;
-            //   // let type = fields.type;
-            //   // let documentId = fields.id;
-            //   let user = new User(req.user);
-            //
-            //   if (!file) {
-            //     return res.status(400).json({error: "Missing files"});
-            //   }
-            //   // if (!type || !documentId) {
-            //   //   return res.status(400).json({error: "Missing type or documentId"});
-            //   // }
-            //   createImage(user, file, group, 'icon', res, function(fsFile) {
-            //     Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
-            //       if (err) throw new Error({msg: err, code: 500});
-            //       res.status(201).end();
-            //     });
-            //   });
-            // });
             let user = new User(req.user);
             let body = req.body;
             let files = body.uploadedDocs;
