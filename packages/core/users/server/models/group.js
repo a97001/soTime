@@ -42,6 +42,9 @@ var GroupsSchema = new Schema({
   	icon: {
   		type: Schema.Types.ObjectId
   	},
+    hasIcon: {
+      type: Boolean
+    },
   	isPublic: Boolean,
   	authentication: {
   		isAuthenticated: Boolean,

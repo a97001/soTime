@@ -106,6 +106,7 @@ module.exports = function(FloorPlan) {
           newGroup.invitations = [];
           newGroup.invitationCounter = 0;
           newGroup.icon = null;
+          newGroup.hasIcon = false;
           newGroup.authentication = {
             isAuthenticated: false,
             identity: null
@@ -266,7 +267,7 @@ module.exports = function(FloorPlan) {
             createImage(user, files[0], group, 'icon', res, function(fsFile) {
               console.log(123);
               console.log(fsFile);
-              Group.update({_id: group._id}, {$set: {icon: fsFile._id}}, (err) => {
+              Group.update({_id: group._id}, {$set: {icon: fsFile._id, hasIcon: true}}, (err) => {
                 if (err) throw new Error({msg: err, code: 500});
                 console.log('finish');
                 res.status(201).end();
@@ -274,7 +275,7 @@ module.exports = function(FloorPlan) {
             });
 
           } else {
-            throw new Error({msg: 'Forbidden', code: 403});
+            return res.status(403).end();
           }
         },
 
