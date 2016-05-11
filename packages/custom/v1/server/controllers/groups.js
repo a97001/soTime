@@ -242,7 +242,7 @@ module.exports = function(FloorPlan) {
             if (fsFile) {
               res.writeHead(200, {
                   'Content-Length' : fsFile.length,
-                  'content-Type': fsFile.content_type
+                  'content-Type': fsFile.contentType
               });
               gfs.createReadStream({
                   _id: fsFile._id
