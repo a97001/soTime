@@ -428,7 +428,7 @@ module.exports = function(FloorPlan) {
     };
 }
 
-function createImage(user, file, type, res, callback) {
+function createImage(user, file, group, type, res, callback) {
   console.log('/uploaded/files/' + user.email + '/' + file.name);
   file.path = '/uploaded/files/' + user.email + '/' + file.name;
   let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
@@ -436,10 +436,10 @@ function createImage(user, file, type, res, callback) {
 
   let gridFile = {
       filename: file.name,
-      // content_type: 'jpg',
+      content_type: file.type,
       metadata: {
         uploader: user._id,
-        type: type._id,
+        type: type,
         desc: "",
         attribute: {}
       },
