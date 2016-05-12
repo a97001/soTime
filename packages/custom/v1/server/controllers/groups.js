@@ -7,11 +7,12 @@ var mongoose = require('mongoose'),
   async = require("async"),
   Grid = require('gridfs-stream'),
   fs = require('fs'),
-  sharp = require('sharp'),
   co = require('co'),
   moment = require('moment'),
-  formidable = require('formidable'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  CustomError = require('../helperClasses/customError'),
+  ImageUploader = require('../helperClasses/imageUploader'),
+  config = require('meanio').loadConfig();
 
 var Group = mongoose.model('Group'),
   Event = mongoose.model('Event'),
@@ -34,6 +35,11 @@ module.exports = function(FloorPlan) {
           co(function*() {
             let me = new User(req.user);
             let group = null;
+            if (req.event && req.event.group) { // check event group
+              id = req.event.group;
+            } else {
+              return next();
+            }
             group = yield Group.findOne({_id: id, members: me._id}).exec();
             if (group) {
               req.group = group;
@@ -62,16 +68,13 @@ module.exports = function(FloorPlan) {
               req.groupPrivilege = 'nonMember';
               return next();
             }
-            // throw new Error('404|Group not exist');
-            let err = new Error("Group not exist");
-            err.code = 400;
-            throw err;
-          }).catch(function (err) {
-            if (!err.code || err.code === 500) {
-              console.log(err);
-              return res.status(500).end();
+            if (req.event) { //check event group
+              req.groupPrivilege = 'unauthorized'
+              return next();
             }
-            return res.status(err.code).json({err: err.message});
+            throw new CustomError("Group not exist", {err: 'Group not exist'}, 404);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -82,11 +85,7 @@ module.exports = function(FloorPlan) {
             groups = yield Group.find({members: req.user._id}, '-icon -followers -invitations').populate('members', 'name').lean().exec();
             return res.json(groups);
           }).catch(function (err) {
-            if (!err.code || err.code === 500) {
-              console.log(err);
-              return res.status(500).end();
-            }
-            return res.status(err.code).json({err: err.message});
+            config.errorHandler(err, res);
           });
         },
 
@@ -124,24 +123,20 @@ module.exports = function(FloorPlan) {
         showFollowingGroups: (req, res) => {
           co(function*() {
             let groups = [];
-            try {
-              groups = yield Group.find({followers: req.user._id, isPublic: true}, '-members -followers -invitations -authentication.identity -icon').lean().exec();
-            } catch (err) {
-              throw new Error({msg: err, code: 500});
-            }
+            groups = yield Group.find({followers: req.user._id, isPublic: true}, '-members -followers -invitations -authentication.identity -icon').lean().exec();
             return res.json(groups);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
         showInvitedGroups: (req, res) => {
           co(function*() {
             let groups = [];
-            try {
-              groups = yield Group.find({invitations: req.user._id}, '-members -followers -invitations -authentication.identity -icon').lean().exec();
-            } catch (err) {
-              throw new Error({msg: err, code: 500});
-            }
+            groups = yield Group.find({invitations: req.user._id}, '-members -followers -invitations -authentication.identity -icon').lean().exec();
             return res.json(groups);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -168,13 +163,8 @@ module.exports = function(FloorPlan) {
             }
             return res.json(group);
           }).catch(function (err) {
-            if (!err.code || err.code === 500) {
-              console.log(err);
-              return res.status(500).end();
-            }
-            return res.status(err.code).json({err: err.message});
+            config.errorHandler(err, res);
           });
-
         },
 
         updateGroup: (req, res, next) => {
@@ -187,15 +177,13 @@ module.exports = function(FloorPlan) {
               if (err) {
                 return res.status(400).json(err);
               }
-              try {
-                yield Group.update({_id: group._id}, {$set: {name: req.body.name, isPublic: req.body.isPublic}}).exec();
-                return res.status(204).end();
-              } catch (err) {
-                throw new Error({msg: err, code: 500});
-              }
+              yield Group.update({_id: group._id}, {$set: {name: req.body.name, isPublic: req.body.isPublic}}).exec();
+              return res.status(204).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -203,34 +191,28 @@ module.exports = function(FloorPlan) {
           co(function*() {
             let group = req.group;
             if (req.groupPrivilege === 'host') {
-              try {
-                if (group.memberCounter === 1) {
-                  yield Group.update({_id: group._id, host: req.user._id, memberCounter: 1}, {$set: {host: null}, $pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
-                  return res.status(203).end();
-                } else if (group.memberCounter > 1) {
-                  let newHost = null;
-                  for (let i=0; i<group.memberCounter; i++) {
-                    if (group.members[i].toString() !== group.host.toString()) {
-                      newHost = group.members[i];
-                      break;
-                    }
+              if (group.memberCounter === 1) {
+                yield Group.update({_id: group._id, host: req.user._id, memberCounter: 1}, {$set: {host: null}, $pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
+                return res.status(203).end();
+              } else if (group.memberCounter > 1) {
+                let newHost = null;
+                for (let i=0; i<group.memberCounter; i++) {
+                  if (group.members[i].toString() !== group.host.toString()) {
+                    newHost = group.members[i];
+                    break;
                   }
-                  yield Group.update({_id: group._id, host: req.user._id, memberCounter: {$gt: 1}, members: newHost}, {$set: {host: newHost}, $pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
-                  return res.status(203).end();
                 }
-              } catch (err) {
-                throw new Error({msg: err, code: 500});
+                yield Group.update({_id: group._id, host: req.user._id, memberCounter: {$gt: 1}, members: newHost}, {$set: {host: newHost}, $pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
+                return res.status(203).end();
               }
             } else if (req.groupPrivilege === 'member') {
-              try {
-                yield Group.update({_id: group._id, host: group.host, memberCounter: {$gt: 1}, members: req.user._id}, {$pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
-                return res.status(203).end();
-              } catch (err) {
-                throw new Error({msg: err, code: 500});
-              }
+              yield Group.update({_id: group._id, host: group.host, memberCounter: {$gt: 1}, members: req.user._id}, {$pull: {members: req.user._id}, $inc: {memberCounter: -1}}).exec();
+              return res.status(203).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -255,21 +237,17 @@ module.exports = function(FloorPlan) {
         },
 
         updateGroupIcon: (req, res, next) => {
-          console.log('start');
           let group = req.group;
           if (req.groupPrivilege === 'member' || req.groupPrivilege === 'host') {
-            console.log(req.groupPrivilege);
             let user = new User(req.user);
             let body = req.body;
             let files = body.uploadedDocs;
-            console.log(files);
-            console.log(body);
-            createImage(user, files[0], group, 'icon', res, function(fsFile) {
-              console.log(123);
-              console.log(fsFile);
+            ImageUploader(user, files[0], group, 'icon', res, function(fsFile) {
               Group.update({_id: group._id}, {$set: {icon: fsFile._id, hasIcon: true}}, (err) => {
-                if (err) throw new Error({msg: err, code: 500});
-                console.log('finish');
+                if (err) {
+                  console.log(err);
+                  return res.status(500).end();
+                }
                 res.status(201).end();
               });
             });
@@ -289,8 +267,10 @@ module.exports = function(FloorPlan) {
               yield Group.update({_id: group._id, memberCounter: {$gt: 1}, isPublic: true, followers: {$ne: req.user._id}}, {$addToSet: {followers: req.user._id}, $inc: {followerCounter: 1}}).exec();
               return res.status(201).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -301,8 +281,10 @@ module.exports = function(FloorPlan) {
               yield Group.update({_id: group._id, memberCounter: {$gt: 1}, isPublic: true, followers:  req.user._id}, {$pull: {followers: req.user._id}, $inc: {followerCounter: -1}}).exec();
               return res.status(201).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -327,7 +309,7 @@ module.exports = function(FloorPlan) {
               }
               if (inviteeType === 'user') {
                 let inviteeUser = yield User.findOne({_id: invitee}).lean().exec();
-                if (!inviteeUser) throw new Error({msg: 'No such user', code: 400});
+                if (!inviteeUser) throw new CustomError("Invitee not exist", {err: 'Invitee not exist'}, 400);
                 yield Group.update({_id: group._id, host: req.user._id, invitations: {$ne: inviteeUser._id}, members: {$ne: inviteeUser._id}, followers: {$ne: inviteeUser._id}}, {$addToSet: {invitations: inviteeUser._id}, $inc: {invitationCounter: 1}}).exec();
                 return res.status(201).end();
               } else if (inviteeType === 'email') {
@@ -349,16 +331,14 @@ module.exports = function(FloorPlan) {
                     webLink: '/' + newNotification._id
                   }
                 });
-                try {
-                  yield newNotification.save();
-                } catch (err) {
-                  throw new Error({msg: err, code: 500});
-                }
+                yield newNotification.save();
                 return res.status(201).json({webLink: newNotification.content.webLink});
               }
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -372,19 +352,17 @@ module.exports = function(FloorPlan) {
               if (err) {
                 return res.status(400).json(err);
               }
-              try {
-                if (decision === 'accept') {
-                  yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$addToSet: {members: req.user._id}, $inc: {memberCounter: 1, invitationCounter: -1}}).exec();
-                } else {
-                  yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$pull: {invitations: req.user._id}, $inc: {invitationCounter: -1}}).exec();
-                }
-                return res.status(203).end();
-              } catch (err) {
-                throw new Error({msg: err, code: 500});
+              if (decision === 'accept') {
+                yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$addToSet: {members: req.user._id}, $inc: {memberCounter: 1, invitationCounter: -1}}).exec();
+              } else {
+                yield Group.update({_id: group._id, memberCounter: {$gt: 1}, invitations: req.user._id, members: {$ne: req.user._id}, followers: {$ne: req.user._id}}, {$pull: {invitations: req.user._id}, $inc: {invitationCounter: -1}}).exec();
               }
+              return res.status(203).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         },
 
@@ -399,73 +377,15 @@ module.exports = function(FloorPlan) {
                 return res.status(400).json(err);
               }
               let inviteeUser = yield User.findOne({_id: invitee}).lean().exec();
-              if (!inviteeUser) throw new Error({msg: 'No such user', code: 400});
+              if (!inviteeUser) throw new CustomError("Invitee not exist", {err: 'Invitee not exist'}, 400);
               yield Group.update({_id: group._id, host: req.user._id, invitations: inviteeUser._id, members: {$ne: inviteeUser._id}, followers: {$ne: inviteeUser._id}}, {$pull: {invitations: inviteeUser._id}, $inc: {invitationCounter: -1}}).exec();
               return res.status(201).end();
             } else {
-              throw new Error({msg: 'Forbidden', code: 403});
+              throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
             }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
         }
     };
-}
-
-function createImage(user, file, group, type, res, callback) {
-  console.log('/uploaded/files/' + user.email + '/' + file.name);
-  file.path = '/uploaded/files/' + user.email + '/' + file.name;
-  let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
-  let fileReadStream = fs.createReadStream('/uploaded/files/' + user.email + '/' + file.name);
-
-  let gridFile = {
-      filename: file.name,
-      content_type: file.type,
-      metadata: {
-        uploader: user._id,
-        type: type,
-        desc: "",
-        attribute: {}
-      },
-      mode: 'w'
-  };
-  console.log(gridFile);
-  let gridFSWriteStream = gfs.createWriteStream(gridFile);
-
-  gridFSWriteStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  imageTransformer.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  fileReadStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  gridFSWriteStream.on('close', function (fsFile) {
-    console.log('test');
-    removeFile(file, function() {
-      callback(fsFile);
-    });
-  });
-  fileReadStream.pipe(imageTransformer).pipe(gridFSWriteStream);
-  // fileReadStream.pipe(gridFSWriteStream);
-}
-
-function removeFile(file, callback) {
-  fs.exists(file.path, function (exists) {
-    if (exists) {
-      fs.unlink(file.path, function(err) {
-        callback();
-      });
-    } else {
-      callback();
-    }
-  });
 }

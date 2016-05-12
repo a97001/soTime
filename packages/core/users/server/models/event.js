@@ -15,35 +15,55 @@ var EventsSchema = new Schema({
 	name: String,
 	description: String,
 	type: String,
-	group: {
-		type: Schema.Types.ObjectId
-	},
-	user: {
-		type: Schema.Types.ObjectId,
+  host: {
+    type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+	group: {
+		type: Schema.Types.ObjectId,
+    ref: 'Group'
 	},
+  friendship: {
+    type: Schema.Types.ObjectId,
+    ref: 'Friendship'
+  },
 	participants: [{
 		type: Schema.Types.ObjectId,
     ref: 'User'
 	}],
+  participantCounter: {
+    type: Number
+  },
 	goings: [{
 		type: Schema.Types.ObjectId,
     ref: 'User'
 	}],
+  goingCounter: {
+    type: Number
+  },
 	notGoings: [{
 		type: Schema.Types.ObjectId,
     ref: 'User'
 	}],
+  notGoingCounter: {
+    type: Number
+  },
 	votes: [{
 		type: String,
 		option: {
 			type: Date
 		},
-		voters: {
+		voters: [{
 			type: Schema.Types.ObjectId,
 			ref: 'User'
-		}
+		}],
+    voteCounter: {
+      type: Number
+    }
 	}],
+  totalVoteCounter: {
+    type: Number
+  },
 	eventStart: {
 		type: Date
 	},
@@ -59,7 +79,16 @@ var EventsSchema = new Schema({
 		name: String
 	},
 	isPublic: Boolean,
-	banner: Schema.Types.ObjectId,
-	photos:[Schema.Types.ObjectId]
+	banner: {
+    type: Schema.Types.ObjectId,
+    ref: 'FsFile'
+  },
+  hasBanner: {
+    type: Boolean
+  },
+	photos:[{
+    type: Schema.Types.ObjectId,
+    ref: 'FsFile'
+  }]
 });
 mongoose.model('Event', EventsSchema, 'events');

@@ -7,14 +7,15 @@ var mongoose = require('mongoose'),
   async = require("async"),
   Grid = require('gridfs-stream'),
   fs = require('fs'),
-  // sharp = require('sharp'),
   co = require('co'),
   moment = require('moment'),
-  formidable = require('formidable'),
+  CustomError = require('../helperClasses/customError'),
+  ImageUploader = require('../helperClasses/imageUploader'),
   _ = require('lodash');
 
 var Group = mongoose.model('Group'),
   Event = mongoose.model('Event'),
+  Friendship = mongoose.model('Friendship'),
   Notification = mongoose.model('Notification'),
   FsFile = mongoose.model('FsFile'),
   User = mongoose.model('User');
@@ -30,94 +31,71 @@ module.exports = function(FloorPlan) {
 
     return {
 
-        group: (req, res, next, id) => {
-          let group = null;
+        event: (req, res, next, id) => {
           co(function*() {
-            group = yield Group.findOne({_id: id, members: req.user_id}).exec();
-            if (group) {
-              req.group = group;
-              if (group.host.toString() === req.user._id.toString()) {
-                req.groupPrivilege = 'host';
-              } else {
-                req.groupPrivilege = 'member';
+            let event = null,
+              participatedEvent = null,
+              me = new User(req.user);
+            let eventResult = yield {
+              event: Event.findOne({_id: id}).exec(),
+              participatedEvent: Event.findOne({_id: id, participants: me._id}).exec()
+            };
+            event = eventResult.event;
+            participatedEvent = eventResult.participatedEvent;
+            if (event) {
+              req.event = event;
+              if (event.host.toString() === req.user._id.toString()) {
+                req.isEventHost = true;
+              }
+              if (participatedEvent) {
+                req.isEventParticipant = true;
+              }
+              if (event.friendship) {
+                let friendship = null;
+                friendship = yield Friendship.findOne({_id: event.friendship, users: me._id}).exec();
+                if (friendship) {
+                  req.friendship = friendship;
+                }
               }
               return next();
             }
-            group = yield Group.findOne({_id: id, isPublic: true, followers: req.user_id}).exec();
-            if (group) {
-              req.group = group;
-              req.groupPrivilege = 'follower';
-              return next();
-            }
-            group = yield Group.findOne({_id: id, invitations: req.user_id}).exec();
-            if (group) {
-              req.group = group;
-              req.groupPrivilege = 'invitation';
-              return next();
-            }
-            group = yield Group.findOne({_id: id, isPublic: true}).exec();
-            if (group) {
-              req.group = group;
-              req.groupPrivilege = 'nonMember';
-              return next();
-            }
-            throw new Error({msg: 'Group not exists', code: 404});
+            throw new CustomError("Event not exist", {err: 'Event not exist'}, 404);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
           });
-        }
+        },
+
+        showEvent: (req, res, next) => {
+          co(function*() {
+            req.event = yield req.event.populate('group', 'name').populate('friendship', 'users').execPopulate();
+            if (req.friendship) {
+              yield User.populate(req.event, 'friendship.users', 'name');
+            }
+            let event = req.event.toObject(),
+                groupPrivilege = req.groupPrivilege,
+                group = req.group;
+            delete event.banner;
+            delete event.photos;
+            delete event.votes;
+
+            if (event.isPublic) {
+              return res.json(event);
+            } else if (event.group && group && groupPrivilege && (groupPrivilege === 'host' || groupPrivilege === 'member')) {
+              return res.json(event);
+            } else if (req.friendship) {
+              return res.json(event);
+            } else if (req.isEventParticipant) {
+              return res.json(event);
+            } else {
+              throw new CustomError("Event not exist", {err: 'Event not exist'}, 404);
+            }
+          }).catch(function (err) {
+            config.errorHandler(err, res);
+          });
+        },
+
+        updateEvent: (req, res, next) => {
+        },
+        deleteEvent: (req, res, next) => {}
     };
-}
-
-function createImage(user, file, type, res, callback) {
-  let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
-  let fileWriteStream = fs.createWriteStream('/uploaded/files/' + user.email + '/' + file.name);
-  let gridFile = {
-      filename: file.name,
-      content_type: 'jpg',
-      metadata: {
-        uploader: user._id,
-        type: type,
-        desc: "",
-        attribute: {}
-      },
-      mode: 'w'
-  };
-  console.log(gridFile);
-  let gridFSWriteStream = gfs.createWriteStream(gridFile);
-  gridFSWriteStream.pipe(imageTransformer).pipe(fileWriteStream);
-  gridFSWriteStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  imageTransformer.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  fileWriteStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  gridFSWriteStream.on('close', function (fsFile) {
-    console.log('test');
-    removeFile(file, function() {
-      callback(fsFile);
-    });
-  });
-}
-
-function removeFile(file, callback) {
-  fs.exists(file.path, function (exists) {
-    if (exists) {
-      fs.unlink(file.path, function(err) {
-        callback();
-      });
-    } else {
-      callback();
-    }
-  });
 }

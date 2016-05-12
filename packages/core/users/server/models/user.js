@@ -83,6 +83,9 @@ var UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'FsFile'
   },
+  hasIcon: {
+    type: Boolean
+  },
   settings: Object
 });
 

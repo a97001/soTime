@@ -7,10 +7,10 @@ var mongoose = require('mongoose'),
   async = require("async"),
   Grid = require('gridfs-stream'),
   fs = require('fs'),
-  // sharp = require('sharp'),
   co = require('co'),
   moment = require('moment'),
-  formidable = require('formidable'),
+  CustomError = require('../helperClasses/customError'),
+  ImageUploader = require('../helperClasses/imageUploader'),
   _ = require('lodash');
 
 var Group = mongoose.model('Group'),
@@ -34,9 +34,11 @@ module.exports = function(FloorPlan) {
         co(function*() {
           let otherUser = null;
           otherUser = yield User.findOne({_id: id, status: {$nin: ['deleted']}}).exec();
-          if (!otherUser) throw new Error({msg: 'User not exists', code: 404});
+          if (!otherUser) throw new CustomError("User not exist", {err: 'User not exist'}, 404);
           req.otherUser = otherUser;
           return next();
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -51,6 +53,8 @@ module.exports = function(FloorPlan) {
             otherUsers = yield User.find({email: {$regex: '^'+req.body.keyword, $options: 'i'}, status: {$nin: ['deleted']}}, 'name email').exec();
           }
           return res.json(otherUsers);
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -114,8 +118,11 @@ module.exports = function(FloorPlan) {
             }
             return res.status(500).end();
           }
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
+
       deleteMe: (req, res, next) => {},
 
       showMyIcon: (req, res, next) => {
@@ -126,18 +133,32 @@ module.exports = function(FloorPlan) {
           }
           if (fsFile) {
             res.writeHead(200, {
-                'Content-Length' : fsFile.length
+                'Content-Length' : fsFile.length,
+                'content-Type': fsFile.contentType
             });
             gfs.createReadStream({
                 _id: fsFile._id
             }).pipe(res);
           } else {
-
+            return res.status(404).end();
           }
         });
       },
 
-      updateMyIcon: (req, res, next) => {},
+      updateMyIcon: (req, res, next) => {
+        let me = new User(req.user);
+        let body = req.body;
+        let files = body.uploadedDocs;
+        ImageUploader(me, files[0], group, 'icon', res, function(fsFile) {
+          User.update({_id: me._id}, {$set: {icon: fsFile._id, hasIcon: true}}, (err) => {
+            if (err) {
+              console.log(err);
+              return res.status(500).end();
+            }
+            res.status(201).end();
+          });
+        });
+      },
 
       showMyFriendships: (req, res, next) => {
         co(function*() {
@@ -158,6 +179,8 @@ module.exports = function(FloorPlan) {
           let friends = [];
           friends = yield User.find({_id: {$in: results[0].users}, status: 'activated'}, 'name email').lean().exec();
           return res.json(friends);
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -165,6 +188,8 @@ module.exports = function(FloorPlan) {
         co(function*() {
           yield Friendship.update({users: {$all: [req.user._id, otherUser._id]}}, {$setOnInsert: {users: [req.user._id, otherUser._id], date: new Date(), status: 'pending'}}, {upsert: true}).exec();
           return res.status(201).end();
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -182,6 +207,8 @@ module.exports = function(FloorPlan) {
             yield Friendship.remove({users: {$all: [req.user._id, otherUser._id]}, status: 'pending'}).exec();
           }
           return res.status(203).end();
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -189,6 +216,8 @@ module.exports = function(FloorPlan) {
         co(function*() {
           yield Friendship.remove({users: {$all: [req.user._id, otherUser._id]}}).exec();
           return res.status(203).end();
+        }).catch(function (err) {
+          config.errorHandler(err, res);
         });
       },
 
@@ -211,68 +240,16 @@ module.exports = function(FloorPlan) {
           }
           if (fsFile) {
             res.writeHead(200, {
-                'Content-Length' : fsFile.length
+                'Content-Length' : fsFile.length,
+                'content-Type': fsFile.contentType
             });
             gfs.createReadStream({
                 _id: fsFile._id
             }).pipe(res);
           } else {
-
+            return res.status(404).end();
           }
         });
       }
     };
-}
-
-function createImage(user, file, type, res, callback) {
-  let imageTransformer = sharp().resize(640, 640).max().rotate().progressive().quality(85).toFormat('jpeg');
-  let fileWriteStream = fs.createWriteStream(file.path);
-  let gridFile = {
-      filename: file.name,
-      content_type: 'jpg',
-      metadata: {
-        uploader: user._id,
-        type: type,
-        desc: "",
-        attribute: {}
-      },
-      mode: 'w'
-  };
-  let gridFSWriteStream = gfs.createWriteStream(gridFile);
-  gridFSWriteStream.pipe(imageTransformer).pipe(fileWriteStream);
-  gridFSWriteStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  imageTransformer.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  fileWriteStream.on('error', function (err) {
-    removeFile(file, function() {
-      console.log(err);
-      return res.status(500).end();
-    });
-  });
-  gridFSWriteStream.on('close', function (fsFile) {
-    removeFile(file, function() {
-      callback(fsFile);
-    });
-  });
-}
-
-function removeFile(file, callback) {
-  fs.exists(file.path, function (exists) {
-    if (exists) {
-      fs.unlink(file.path, function(err) {
-        callback();
-      });
-    } else {
-      callback();
-    }
-  });
 }
