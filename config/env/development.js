@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  db: 'mongodb://ec2-52-24-35-225.us-west-2.compute.amazonaws.com/test',
+  db: 'mongodb://ec2-52-24-35-225.us-west-2.compute.amazonaws.com/soTime',
   debug: true,
   logging: {
     format: 'tiny'
@@ -21,8 +21,8 @@ module.exports = {
     },
     landingPage: '/',
     facebook: {
-      clientID: 'DEFAULT_APP_ID',
-      clientSecret: 'APP_SECRET',
+      clientID: '1686545874917425',
+      clientSecret: '681ac1c217c1030a97678affb972a2be',
       callbackURL: 'http://localhost:3000/api/auth/facebook/callback',
       enabled: true
     },
@@ -50,6 +50,13 @@ module.exports = {
       callbackURL: 'http://localhost:3000/v1/auth/linkedin/callback',
       enabled: false
     }
+  },
+  errorHandler: function(err, res) {
+    if (!err.statusCode || err.statusCode === 500) {
+      console.log(err);
+      return res.status(500).end();
+    }
+    return res.status(err.statusCode).json(err.errorObject);
   },
   // emailFrom: '"Negawatt Utility" <noreply@negawatt.co>', // sender address like ABC <abc@example.com>
   // mailer: {

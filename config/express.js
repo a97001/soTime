@@ -89,5 +89,12 @@ module.exports = function(app, db) {
   });
 
   app.disable('x-powered-by');
+
+  // app.use(function(err, req, res, next) {
+  //   console.error(err);
+  //   console.log(err.msg);
+  //   console.log(err.status);
+  //   res.status(500).send(err);
+  // });
   // app.use(seo());
 };
