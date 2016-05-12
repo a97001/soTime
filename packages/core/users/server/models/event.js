@@ -8,10 +8,6 @@ var mongoose = require('mongoose'),
     config = require('meanio').loadConfig();
 
 var EventsSchema = new Schema({
-  host: {
-		type: Schema.Types.ObjectId,
-		ref: 'User'
-	},
 	name: String,
 	description: String,
 	type: String,
@@ -49,9 +45,17 @@ var EventsSchema = new Schema({
     type: Number
   },
 	votes: [{
-		type: String,
+		name: String,
 		option: {
-			type: Date
+      eventStart: Date,
+      eventEnd: Date,
+      venue: {
+        coordinates: {
+          lat: Number,
+          lon: Number
+        },
+        name: String
+      }
 		},
 		voters: [{
 			type: Schema.Types.ObjectId,
@@ -68,9 +72,9 @@ var EventsSchema = new Schema({
 		type: Date
 	},
 	isAllDay: Boolean,
-	eventDuration: Number,
+	eventEnd: Date,
 	voteStart: Date,
-	voteDuration: Number,
+	voteEnd: Date,
 	venue: {
 		coordinates: {
 			lat: Number,

@@ -25,6 +25,10 @@
         .get(auth.requiresLogin, groups.showGroupIcon)
         .put(auth.requiresLogin, groups.updateGroupIcon);
 
+    app.route('/v1/groups/:group_groupId/events')
+        .get(auth.requiresLogin, groups.allGroupEvents)
+        .post(auth.requiresLogin, groups.createGroupEvent);
+
     app.route('/v1/groups/:group_groupId/followings')
         .get(auth.requiresLogin, groups.showGroupFollowers)
         .post(auth.requiresLogin, groups.createGroupFollower);

@@ -160,6 +160,71 @@ module.exports = function(FloorPlan) {
         });
       },
 
+      allMyEvents: (req, res, next) => {
+        co(function*() {
+          let myEvents = [],
+            me = new User(req.user);
+          req.checkQuery('from', 'from is not a valid date').notEmpty().isDate();
+          req.checkQuery('to', 'to is not a valid date').notEmpty().isDate();
+          var err = req.validationErrors();
+          if (err) {
+            return res.status(400).json(err);
+          }
+          if (req.query.type) {
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, eventStart: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'name description type eventStart isAllDay eventEnd venue isPublic').lean().exec();
+          } else {
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, eventStart: {$gte: new Date(from), $lte: new Date(to)}}, 'name description type eventStart isAllDay eventEnd venue isPublic').lean().exec();
+          }
+          return res.json(myEvents);
+        }).catch(function (err) {
+          config.errorHandler(err, res);
+        });
+      },
+
+      createMyEvent: (req, res, next) => {
+        let newEvent = req.body;
+        req.checkBody('name', 'name must be between 1-50 characters long').notEmpty().len(1, 50);
+        req.checkBody('description', 'description is not exist').notEmpty();
+        req.checkBody('type', 'type is not exist').notEmpty();
+        req.checkBody('eventStart', 'eventStart is not a valid date').notEmpty().isDate();
+        req.checkBody('isAllDay', 'isAllDay must be boolean').notEmpty().isBoolean();
+        req.checkBody('eventEnd', 'eventEnd is not a valid date').notEmpty().isDate();
+        req.checkBody('venue', 'venue object is not exist').notEmpty();
+        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
+        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
+        req.checkBody('venue.name', 'venue.name is not exist').notEmpty();
+        req.checkBody('isPublic', 'isPublic must be boolean').notEmpty().isBoolean();
+        var err = req.validationErrors();
+        if (err) {
+          return res.status(400).json(err);
+        }
+        newEvent.host = req.user._id;
+        newEvent.group = null;
+        newEvent.friendship = null;
+        newEvent.participants = [];
+        newEvent.participantCounter = 0;
+        newEvent.goings = [];
+        newEvent.goingCounter = 0;
+        newEvent.notGoings = [];
+        newEvent.notGoingCounter = 0;
+        newEvent.votes = [];
+        newEvent.totalVoteCounter = 0;
+        newEvent.voteStart = null;
+        newEvent.voteEnd = null;
+        newEvent.banner = null;
+        newEvent.hasBanner = false;
+        newEvent.photos = [];
+
+        newEvent = new Event(newEvent);
+        newEvent.save((err)=>{
+          if (err) {
+            console.log(err)
+            return res.status(500).end();
+          }
+          res.status(201).json(newEvent);
+        });
+      },
+
       showMyFriendships: (req, res, next) => {
         co(function*() {
           let results = [],

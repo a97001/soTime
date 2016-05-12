@@ -34,21 +34,21 @@ module.exports = function(FloorPlan) {
         event: (req, res, next, id) => {
           co(function*() {
             let event = null,
-              participatedEvent = null,
+              goingEvent = null,
               me = new User(req.user);
             let eventResult = yield {
               event: Event.findOne({_id: id}).exec(),
-              participatedEvent: Event.findOne({_id: id, participants: me._id}).exec()
+              goingEvent: Event.findOne({_id: id, goings: me._id}).exec()
             };
             event = eventResult.event;
-            participatedEvent = eventResult.participatedEvent;
+            goingEvent = eventResult.goingEvent;
             if (event) {
               req.event = event;
               if (event.host.toString() === req.user._id.toString()) {
                 req.isEventHost = true;
               }
-              if (participatedEvent) {
-                req.isEventParticipant = true;
+              if (goingEvent) {
+                req.isGoingEvent = true;
               }
               if (event.friendship) {
                 let friendship = null;
@@ -84,7 +84,9 @@ module.exports = function(FloorPlan) {
               return res.json(event);
             } else if (req.friendship) {
               return res.json(event);
-            } else if (req.isEventParticipant) {
+            } else if (req.isGoingEvent) {
+              return res.json(event);
+            } else if (req.isEventHost && !event.group && !event.friendship) {
               return res.json(event);
             } else {
               throw new CustomError("Event not exist", {err: 'Event not exist'}, 404);

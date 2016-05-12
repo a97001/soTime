@@ -18,6 +18,10 @@
       .get(auth.requiresLogin, users.showMyIcon)
       .put(auth.requiresLogin, users.updateMyIcon);
 
+    app.route('/v1/users/me/events')
+      .get(auth.requiresLogin, users.allMyEvents)
+      .post(auth.requiresLogin, users.createMyEvent);
+
     app.route('/v1/users/me/friendships')
       .get(auth.requiresLogin, users.showMyFriendships);
 

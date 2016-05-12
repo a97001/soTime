@@ -257,6 +257,36 @@ module.exports = function(FloorPlan) {
           }
         },
 
+        allGroupEvents: (req, res, next) => {
+          co(function*() {
+            let myEvents = [],
+              me = new User(req.user);
+            req.checkQuery('from', 'from is not a valid date').notEmpty().isDate();
+            req.checkQuery('to', 'to is not a valid date').notEmpty().isDate();
+            var err = req.validationErrors();
+            if (err) {
+              return res.status(400).json(err);
+            }
+            let query = {eventStart: {$gte: new Date(from), $lte: new Date(to)}};
+            if (req.query.type) {
+              query.type = req.query.type;
+            }
+            if (req.query.goingEvents) {
+              query.$or = [{host: me._id, group: null, friendship: null}, {goings: me._id}];
+            } else {
+              query.host = me._id;
+              query.group = null;
+              query.friendship = null;
+            }
+            myEvents = yield Event.find(query, 'name description type eventStart isAllDay eventEnd venue isPublic').lean().exec();
+            return res.json(myEvents);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
+          });
+        },
+
+        createGroupEvent: (req, res, next) => {},
+
         showGroupFollowers: (req, res) => {
         },
 
