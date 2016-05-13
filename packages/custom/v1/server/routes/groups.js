@@ -10,6 +10,9 @@
        .get(auth.requiresLogin, groups.allGroups)
        .post(auth.requiresLogin, groups.createGroup);
 
+    app.route('/v1/groups/search')
+       .post(auth.requiresLogin, groups.searchGroups);
+
     app.route('/v1/groups/followings')
        .get(auth.requiresLogin, groups.showFollowingGroups);
 

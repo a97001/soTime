@@ -78,6 +78,18 @@ module.exports = function(FloorPlan) {
           });
         },
 
+        searchGroups: (req, res, next) => {
+          co(function*() {
+            let groups = [];
+            req.checkBody('keyword', 'keyword is missing').notEmpty();
+            var errors = req.validationErrors();
+            groups = yield Group.find({name: {$regex: req.body.keyword, $options: 'i'}, isPublic: true}, 'name host followerCounter hasIcon').populate('host', 'username').exec();
+            return res.json(groups);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
+          });
+        },
+
         allGroups: (req, res, next) => {
           co(function*() {
             let me = new User(req.user);
