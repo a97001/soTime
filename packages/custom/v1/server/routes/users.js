@@ -10,7 +10,7 @@
       .post(auth.requiresLogin, users.searchUsers);
 
     app.route('/v1/users/me')
-      // .get(auth.requiresLogin, users.showMe)
+      .get(auth.requiresLogin, users.showMe)
       .put(auth.requiresLogin, users.updateMe)
       .delete(auth.requiresLogin, users.deleteMe);
 

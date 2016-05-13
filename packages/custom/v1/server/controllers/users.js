@@ -74,7 +74,18 @@ module.exports = function(FloorPlan) {
         });
       },
 
-      // showMe: (req, res, next) => {},
+      showMe: (req, res, next) => {
+        co(function*() {
+          let me = null;
+          me = yield User.findOne({_id: req.user._id}).exec();
+          // if (!otherUser) throw new CustomError("User not exist", {err: 'User not exist'}, 404);
+          // req.otherUser = otherUser;
+          // return next();
+          return res.json(me.toJSON());
+        }).catch(function (err) {
+          config.errorHandler(err, res);
+        });
+      },
 
       updateMe: (req, res, next) => {
         co(function*() {
