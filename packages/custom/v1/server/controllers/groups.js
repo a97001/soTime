@@ -285,7 +285,7 @@ module.exports = function(FloorPlan) {
             //   query.group = null;
             //   query.friendship = null;
             // }
-            groupEvents = yield Event.find(query, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            groupEvents = yield Event.find(query, 'title description type startTime allDay endTime venue isPublic').lean().exec();
             return res.json(groupEvents);
           }).catch(function (err) {
             config.errorHandler(err, res);
@@ -297,7 +297,7 @@ module.exports = function(FloorPlan) {
             groupPrivilege = req.groupPrivilege,
             me = new User(req.user);
           let newEvent = req.body;
-          req.checkBody('name', 'name must be between 1-50 characters long').notEmpty().len(1, 50);
+          req.checkBody('title', 'title must be between 1-50 characters long').notEmpty().len(1, 50);
           req.checkBody('description', 'description is not exist').notEmpty();
           req.checkBody('type', 'type is not exist').notEmpty();
           req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();

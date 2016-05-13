@@ -187,9 +187,9 @@ module.exports = function(FloorPlan) {
             return res.status(400).json(err);
           }
           if (req.query.type) {
-            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           } else {
-            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}}, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           }
           return res.json(myEvents);
         }).catch(function (err) {
@@ -199,7 +199,7 @@ module.exports = function(FloorPlan) {
 
       createMyEvent: (req, res, next) => {
         let newEvent = req.body;
-        req.checkBody('name', 'name must be between 1-50 characters long').notEmpty().len(1, 50);
+        req.checkBody('title', 'title must be between 1-50 characters long').notEmpty().len(1, 50);
         req.checkBody('description', 'description is not exist').notEmpty();
         req.checkBody('type', 'type is not exist').notEmpty();
         req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();
@@ -314,9 +314,9 @@ module.exports = function(FloorPlan) {
             return res.status(400).json(err);
           }
           if (req.query.type) {
-            friendshipEvents = yield Event.find({friendship: req.friendship._id, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            friendshipEvents = yield Event.find({friendship: req.friendship._id, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           } else {
-            friendshipEvents = yield Event.find({friendship: req.friendship._id, endTime: {$gte: new Date(from), $lte: new Date(to)}}, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            friendshipEvents = yield Event.find({friendship: req.friendship._id, endTime: {$gte: new Date(from), $lte: new Date(to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           }
           return res.json(friendshipEvents);
         }).catch(function (err) {
@@ -326,7 +326,7 @@ module.exports = function(FloorPlan) {
 
       createFriendshipEvent: (req, res, next) => {
         let newEvent = req.body;
-        req.checkBody('name', 'name must be between 1-50 characters long').notEmpty().len(1, 50);
+        req.checkBody('title', 'title must be between 1-50 characters long').notEmpty().len(1, 50);
         req.checkBody('description', 'description is not exist').notEmpty();
         req.checkBody('type', 'type is not exist').notEmpty();
         req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();

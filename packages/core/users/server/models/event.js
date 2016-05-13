@@ -8,7 +8,7 @@ var mongoose = require('mongoose'),
     config = require('meanio').loadConfig();
 
 var EventsSchema = new Schema({
-	name: String,
+	title: String,
 	description: String,
 	type: String,
   host: {
