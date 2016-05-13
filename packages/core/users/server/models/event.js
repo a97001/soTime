@@ -68,11 +68,11 @@ var EventsSchema = new Schema({
   totalVoteCounter: {
     type: Number
   },
-	eventStart: {
+	startTime: {
 		type: Date
 	},
-	isAllDay: Boolean,
-	eventEnd: Date,
+	allDay: Boolean,
+	endTime: Date,
 	voteStart: Date,
 	voteEnd: Date,
 	venue: {

@@ -30,6 +30,10 @@
       .put(auth.requiresLogin, users.makeFriendshipDecision)
       .delete(auth.requiresLogin, users.deleteFriendship);
 
+    app.route('/v1/users/me/friendships/:friendship_userId/events')
+      .get(auth.requiresLogin, users.allFriendshipEvents)
+      .post(auth.requiresLogin, users.createFriendshipEvent);
+
     app.route('/v1/users/:user_userId')
       .get(auth.requiresLogin, users.showUser);
 
@@ -48,6 +52,7 @@
 
     // Setting up params
     app.param('user_userId', users.user);
+    app.param('friendship_userId', users.friendship);
     // app.param('user_friendshipId', users.friendship);
   };
 })();

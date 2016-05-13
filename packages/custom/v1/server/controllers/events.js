@@ -52,7 +52,7 @@ module.exports = function(FloorPlan) {
               }
               if (event.friendship) {
                 let friendship = null;
-                friendship = yield Friendship.findOne({_id: event.friendship, users: me._id}).exec();
+                friendship = yield Friendship.findOne({_id: event.friendship, users: me._id, status: 'accepted'}).exec();
                 if (friendship) {
                   req.friendship = friendship;
                 }
@@ -97,7 +97,35 @@ module.exports = function(FloorPlan) {
         },
 
         updateEvent: (req, res, next) => {
+          let event = req.event,
+              groupPrivilege = req.groupPrivilege,
+              group = req.group,
+              friendship = req.friendship;
+          if (event.group && group && req.isEventHost) {
+
+          } else if (event.friendship && friendship) {
+
+          } else if (req.isEventHost && !event.group && !event.friendship) {
+
+          } else {
+            throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
+          }
         },
-        deleteEvent: (req, res, next) => {}
+
+        deleteEvent: (req, res, next) => {
+          let event = req.event,
+              groupPrivilege = req.groupPrivilege,
+              group = req.group,
+              friendship = req.friendship;
+          if (event.group && group && req.isEventHost) {
+
+          } else if (event.friendship && friendship) {
+
+          } else if (req.isEventHost && !event.group && !event.friendship) {
+
+          } else {
+            throw new CustomError("Forbidden", {err: 'Forbidden'}, 403);
+          }
+        }
     };
 }

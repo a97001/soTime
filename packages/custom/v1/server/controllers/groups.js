@@ -259,7 +259,7 @@ module.exports = function(FloorPlan) {
 
         allGroupEvents: (req, res, next) => {
           co(function*() {
-            let myEvents = [],
+            let groupEvents = [],
               me = new User(req.user);
             req.checkQuery('from', 'from is not a valid date').notEmpty().isDate();
             req.checkQuery('to', 'to is not a valid date').notEmpty().isDate();
@@ -267,25 +267,77 @@ module.exports = function(FloorPlan) {
             if (err) {
               return res.status(400).json(err);
             }
-            let query = {eventStart: {$gte: new Date(from), $lte: new Date(to)}};
+            let groupPrivilege = req.groupPrivilege,
+              group = req.group,
+              query = {};
+            if (groupPrivilege === 'host' || groupPrivilege === 'member' || group.isPublic) {
+              query = {group: group._id, startTime: {$gte: new Date(from), $lte: new Date(to)}}
+            } else {
+              throw new CustomError('Forbidden', {err: 'Forbidden'}, 403);
+            }
             if (req.query.type) {
               query.type = req.query.type;
             }
-            if (req.query.goingEvents) {
-              query.$or = [{host: me._id, group: null, friendship: null}, {goings: me._id}];
-            } else {
-              query.host = me._id;
-              query.group = null;
-              query.friendship = null;
-            }
-            myEvents = yield Event.find(query, 'name description type eventStart isAllDay eventEnd venue isPublic').lean().exec();
-            return res.json(myEvents);
+            // if (req.query.goingEvents) {
+            //   query.$or = [{host: me._id, group: null, friendship: null}, {goings: me._id}];
+            // } else {
+            //   query.host = me._id;
+            //   query.group = null;
+            //   query.friendship = null;
+            // }
+            groupEvents = yield Event.find(query, 'name description type startTime allDay endTime venue isPublic').lean().exec();
+            return res.json(groupEvents);
           }).catch(function (err) {
             config.errorHandler(err, res);
           });
         },
 
-        createGroupEvent: (req, res, next) => {},
+        createGroupEvent: (req, res, next) => {
+          let group = req.group,
+            groupPrivilege = req.groupPrivilege,
+            me = new User(req.user);
+          let newEvent = req.body;
+          req.checkBody('name', 'name must be between 1-50 characters long').notEmpty().len(1, 50);
+          req.checkBody('description', 'description is not exist').notEmpty();
+          req.checkBody('type', 'type is not exist').notEmpty();
+          req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();
+          req.checkBody('allDay', 'allDay must be boolean').notEmpty().isBoolean();
+          req.checkBody('endTime', 'endTime is not a valid date').notEmpty().isDate();
+          req.checkBody('venue', 'venue object is not exist').notEmpty();
+          req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
+          req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
+          req.checkBody('venue.name', 'venue.name is not exist').notEmpty();
+          req.checkBody('isPublic', 'isPublic must be boolean').notEmpty().isBoolean();
+          var err = req.validationErrors();
+          if (err) {
+            return res.status(400).json(err);
+          }
+          newEvent.host = req.user._id;
+          newEvent.group = group._id;
+          newEvent.friendship = null;
+          newEvent.participants = [];
+          newEvent.participantCounter = 0;
+          newEvent.goings = [];
+          newEvent.goingCounter = 0;
+          newEvent.notGoings = [];
+          newEvent.notGoingCounter = 0;
+          newEvent.votes = [];
+          newEvent.totalVoteCounter = 0;
+          newEvent.voteStart = null;
+          newEvent.voteEnd = null;
+          newEvent.banner = null;
+          newEvent.hasBanner = false;
+          newEvent.photos = [];
+
+          newEvent = new Event(newEvent);
+          newEvent.save((err)=>{
+            if (err) {
+              console.log(err)
+              return res.status(500).end();
+            }
+            res.status(201).json(newEvent);
+          });
+        },
 
         showGroupFollowers: (req, res) => {
         },
