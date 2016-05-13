@@ -187,9 +187,9 @@ module.exports = function(FloorPlan) {
             return res.status(400).json(err);
           }
           if (req.query.type) {
-            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(req.query.from), $lte: new Date(req.query.to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           } else {
-            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(from), $lte: new Date(to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+            myEvents = yield Event.find({host: me._id, group: null, friendship: null, startTime: {$gte: new Date(req.query.from), $lte: new Date(req.query.to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           }
           return res.json(myEvents);
         }).catch(function (err) {
@@ -314,9 +314,9 @@ module.exports = function(FloorPlan) {
             return res.status(400).json(err);
           }
           if (req.query.type) {
-            friendshipEvents = yield Event.find({friendship: req.friendship._id, startTime: {$gte: new Date(from), $lte: new Date(to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+            friendshipEvents = yield Event.find({friendship: req.friendship._id, startTime: {$gte: new Date(req.query.from), $lte: new Date(req.query.to)}, type: req.query.type}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           } else {
-            friendshipEvents = yield Event.find({friendship: req.friendship._id, endTime: {$gte: new Date(from), $lte: new Date(to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+            friendshipEvents = yield Event.find({friendship: req.friendship._id, endTime: {$gte: new Date(req.query.from), $lte: new Date(req.query.to)}}, 'title description type startTime allDay endTime venue isPublic').lean().exec();
           }
           return res.json(friendshipEvents);
         }).catch(function (err) {
