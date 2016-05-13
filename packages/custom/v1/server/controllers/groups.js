@@ -37,7 +37,7 @@ module.exports = function(FloorPlan) {
             let group = null;
             if (req.event && req.event.group) { // check event group
               id = req.event.group;
-            } else {
+            } else if (!id) {
               return next();
             }
             group = yield Group.findOne({_id: id, members: me._id}).exec();
