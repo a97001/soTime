@@ -83,7 +83,21 @@ module.exports = function(FloorPlan) {
             let groups = [];
             req.checkBody('keyword', 'keyword is missing').notEmpty();
             var errors = req.validationErrors();
-            groups = yield Group.find({name: {$regex: req.body.keyword, $options: 'i'}, isPublic: true}, 'name host followerCounter hasIcon').populate('host', 'username').exec();
+            if (req.body.keyword === "") {
+              groups = yield Group.aggregate([
+                {$match: {isPublic: true}},
+                { $sample: { size: 30 } },
+                { "$project": {
+                  name: '$name',
+                  host: '$host',
+                  followerCounter: '$followerCounter',
+                  hasIcon: '$hasIcon'
+                }}
+              ]).exec();
+              yield User.populate(groups, 'host', 'name');
+            } else {
+              groups = yield Group.find({name: {$regex: req.body.keyword, $options: 'i'}, isPublic: true}, 'name host followerCounter hasIcon').populate('host', 'username').exec();
+            }
             return res.json(groups);
           }).catch(function (err) {
             config.errorHandler(err, res);
