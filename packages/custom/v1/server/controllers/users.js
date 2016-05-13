@@ -205,10 +205,10 @@ module.exports = function(FloorPlan) {
         req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();
         req.checkBody('allDay', 'allDay must be boolean').notEmpty().isBoolean();
         req.checkBody('endTime', 'endTime is not a valid date').notEmpty().isDate();
-        req.checkBody('venue', 'venue object is not exist').notEmpty();
-        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
-        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
-        req.checkBody('venue.name', 'venue.name is not exist').notEmpty();
+        // req.checkBody('venue', 'venue object is not exist').optional().notEmpty();
+        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').optional().isNumeric();
+        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').optional().isNumeric();
+        // req.checkBody('venue.name', 'venue.name is not exist').optional().notEmpty();
 
         var err = req.validationErrors();
         if (err) {
@@ -332,10 +332,10 @@ module.exports = function(FloorPlan) {
         req.checkBody('startTime', 'startTime is not a valid date').notEmpty().isDate();
         req.checkBody('allDay', 'allDay must be boolean').notEmpty().isBoolean();
         req.checkBody('endTime', 'endTime is not a valid date').notEmpty().isDate();
-        req.checkBody('venue', 'venue object is not exist').notEmpty();
-        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
-        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').isNumeric();
-        req.checkBody('venue.name', 'venue.name is not exist').notEmpty();
+        // req.checkBody('venue', 'venue object is not exist').notEmpty();
+        req.checkBody('venue.coordinates.lat', 'venue.coordinates.lat is not a valid number').optional().isNumeric();
+        req.checkBody('venue.coordinates.lon', 'venue.coordinates.lon is not a valid number').optional().isNumeric();
+        // req.checkBody('venue.name', 'venue.name is not exist').notEmpty();
         req.checkBody('isPublic', 'isPublic must be boolean').notEmpty().isBoolean();
         var err = req.validationErrors();
         if (err) {
