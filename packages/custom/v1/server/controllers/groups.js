@@ -271,7 +271,7 @@ module.exports = function(FloorPlan) {
               group = req.group,
               query = {};
             if (groupPrivilege === 'host' || groupPrivilege === 'member' || group.isPublic) {
-              query = {group: group._id, startTime: {$gte: new Date(req.query.from), $lte: new Date(req.query.to)}}
+              query = {group: group._id, startTime: {$lte: new Date(req.query.to)}, endTime: {$gte: new Date(req.query.from)}};
             } else {
               throw new CustomError('Forbidden', {err: 'Forbidden'}, 403);
             }
