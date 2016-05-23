@@ -107,7 +107,7 @@ module.exports = function(MeanUser) {
             req.assert('password', 'Password must be between 8-20 characters long').len(8, 20);
             req.assert('username', 'Username cannot be more than 20 characters').len(1, 20);
             req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
-            req.assert('invitation', 'invitation must be valid ObjectId').isMongoId();
+            req.assert('invitation', 'invitation must be valid ObjectId').optional().isMongoId();
 
             var errors = req.validationErrors();
             if (errors) {
