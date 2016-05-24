@@ -11,7 +11,8 @@ var mongoose = require('mongoose'),
   moment = require('moment'),
   CustomError = require('../helperClasses/customError'),
   ImageUploader = require('../helperClasses/imageUploader'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  config = require('meanio').loadConfig();
 
 var Group = mongoose.model('Group'),
   Event = mongoose.model('Event'),

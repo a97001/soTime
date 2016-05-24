@@ -16,6 +16,9 @@
     app.route('/v1/groups/followings')
        .get(auth.requiresLogin, groups.showFollowingGroups);
 
+    app.route('/v1/groups/followings/events')
+      .get(auth.requiresLogin, groups.showFollowingEvents);
+
     app.route('/v1/groups/invitations')
         .get(auth.requiresLogin, groups.showInvitedGroups);
 

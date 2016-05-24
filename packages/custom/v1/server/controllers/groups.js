@@ -156,6 +156,18 @@ module.exports = function(FloorPlan) {
           });
         },
 
+        showFollowingEvents: (req, res) => {
+          co(function*() {
+            let groups = [];
+            groups = yield Group.find({followers: req.user._id, isPublic: true}, '_id').lean().exec();
+            let events = [];
+            events = yield Event.find({group: {$in: groups}, isPublic: true}, 'title description type startTime allDay endTime venue isPublic').sort({from: 1, to: 1}).populate('group', 'name').lean().exec();
+            return res.json(events);
+          }).catch(function (err) {
+            config.errorHandler(err, res);
+          });
+        },
+
         showInvitedGroups: (req, res) => {
           co(function*() {
             let groups = [];

@@ -117,7 +117,7 @@ module.exports = function(FloorPlan) {
               groupPrivilege = req.groupPrivilege,
               group = req.group,
               friendship = req.friendship;
-          if (event.group && group && req.isEventHost) {
+          if (event.group && group && (groupPrivilege === 'host' || groupPrivilege === 'member')) {
 
           } else if (event.friendship && friendship) {
 
