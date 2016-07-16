@@ -26,7 +26,6 @@ describe('## User APIs', () => {
 	let group = null;
 
 	describe('## Users', () => {
-
 		describe('# POST /v0.1.0/users', () => {
 			it('should create a new user', (done) => {
 				request(app)

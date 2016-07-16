@@ -83,7 +83,7 @@ module.exports = {
 				return res.status(403).end();
 			}
 			const updates = Object.keys(req.body);
-			for (let i=0; i<updates.length; i++) {
+			for (let i = 0; i < updates.length; i++) {
 				req.group[updates[i]] = req.body[updates[i]];
 			}
 			yield req.group.save();
