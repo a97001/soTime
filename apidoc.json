@@ -1,0 +1,8 @@
+{
+  "name": "soTime API documentation",
+  "version": "0.1.0",
+  "description": "API task list manager",
+  "template": {
+    "forceLanguage": "en"
+  }
+}

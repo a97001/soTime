@@ -1,100 +1,115 @@
-/* globals require */
-'use strict';
+const express = require('express');
+const logger = require('morgan');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const compress = require('compression');
+const methodOverride = require('method-override');
+const cors = require('cors');
+const httpStatus = require('http-status');
+const expressWinston = require('express-winston');
+const expressValidation = require('express-validation');
+const winstonInstance = require('./winston');
+const routes = require('../server/routes');
+const config = require('./env');
+const APIError = require('../server/helpers/APIError');
+const expressJwt = require('express-jwt');
+const passport = require('passport');
+const initPassport = require('./passport');
 
-/**
- * Module dependencies.
- */
-var mean = require('meanio'),
-  compression = require('compression'),
-  consolidate = require('consolidate'),
-  express = require('express'),
-  helpers = require('view-helpers'),
-  flash = require('connect-flash'),
-  modRewrite = require('connect-modrewrite'),
-  // seo = require('mean-seo'),
-  config = mean.loadConfig(),
-  expressJwt = require('express-jwt'),
-  bodyParser = require('body-parser');
+const app = express();
 
-module.exports = function(app, db) {
+if (config.env === 'development') {
+	app.use(logger('dev'));
+}
 
-  app.use(bodyParser.json(config.bodyParser.json));
-  app.use(bodyParser.urlencoded(config.bodyParser.urlencoded));
+// parse body params and attache them to req.body
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  app.set('showStackError', true);
+app.use(cookieParser());
+app.use(compress());
+app.use(methodOverride());
 
-  // Prettify HTML
-  app.locals.pretty = true;
+// disable 'X-Powered-By' header in response
+app.disable('x-powered-by');
 
-  // cache=memory or swig dies in NODE_ENV=production
-  app.locals.cache = 'memory';
+// enable CORS - Cross Origin Resource Sharing
+app.use(cors());
 
-  // Should be placed before express.static
-  // To ensure that all assets and data are compressed (utilize bandwidth)
-  app.use(compression({
-    // Levels are specified in a range of 0 to 9, where-as 0 is
-    // no compression and 9 is best compression, but slowest
-    level: 9
-  }));
+app.use(passport.initialize());
+initPassport(passport);
 
-  // Enable compression on bower_components
-  app.use('/bower_components', express.static(config.root + '/bower_components'));
+// enable detailed API logging in dev env
+if (config.env === 'development' || config.env === 'test') {
+	expressWinston.requestWhitelist.push('body');
+	expressWinston.responseWhitelist.push('body');
+	app.use(expressWinston.logger({
+		winstonInstance,
+		statusLevels: true,
+		level: 'warn',
+		meta: true, 	// optional: log meta data about request (defaults to true)
+		msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
+		colorStatus: true 	// Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
+	}));
+	app.use(express.static('public'));
+}
 
-  // Adds logging based on logging config in config/env/ entry
-  require('./middlewares/logging')(app, config.logging);
+app.use(expressJwt({
+	secret: config.secret,
+	credentialsRequired: true,
+	requestProperty: 'me',
+	getToken: (req) => {
+		if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+			return req.headers.authorization.split(' ')[1];
+		} else if (req.query && req.query.token) {
+			return req.query.token;
+		}
+		return null;
+	}
+}).unless({ path: ['/', { url: /.*\/users$/, methods: ['POST'] }, { url: /.*\/users\/login$/, methods: ['POST'] }, { url: /.*\/users\/token$/, methods: ['POST'] }, '/404', '/health-check'] }), (req, res, next) => {
+	if (req.me) {
+		req.me = JSON.parse(decodeURI(req.me));
+	}
+	next();
+});
 
-  // assign the template engine to .html files
-  app.engine('html', consolidate[config.templateEngine]);
+// mount all routes on /api path
+app.use('/', routes);
 
-  // set .html as the default extension
-  app.set('view engine', 'html');
+// if error is not an instanceOf APIError, convert it.
+app.use((err, req, res, next) => {
+	if (err instanceof expressValidation.ValidationError) {
+		// validation error contains errors which is an array of error each containing message[]
+		const unifiedErrorMessage = err.errors.map(error => error.messages.join('. ')).join(' and ');
+		const error = new APIError(unifiedErrorMessage, err.status, true);
+		return next(error);
+	} else if (!(err instanceof APIError)) {
+		const apiError = new APIError(err.message, err.status, err.isPublic);
+		apiError.stack = err.stack;
+		return next(apiError);
+	}
+	return next(err);
+});
 
+// catch 404 and forward to error handler
+app.use((req, res, next) => {
+	const err = new APIError('API not found', httpStatus.NOT_FOUND);
+	return next(err);
+});
 
-  // Dynamic helpers
-  app.use(helpers(config.app.name));
+// log error in winston transports except when executing test suite
+if (config.env !== 'test') {
+	app.use(expressWinston.errorLogger({
+		winstonInstance
+	}));
+}
 
-  // Connect flash for flash messages
-  app.use(flash());
+// error handler, send stacktrace only during development
+app.use((err, req, res, next) =>		// eslint-disable-line no-unused-vars
+	res.status(err.status).json({
+		message: err.isPublic ? err.message : httpStatus[err.status],
+		stack: config.env === 'development' || config.env === 'test' ? err.stack : {}
+	})
+);
 
-  app.use(modRewrite([
-
-    '!^/auth/.*|^/admin/.*|^/energy/.*|^/api/.*|^/test/.*|^/v1/.*|\\_getModules|\\.html|\\.js|\\.css|\\.swf|\\.jp(e?)g|\\.png|\\.ico|\\.gif|\\.svg|\\.eot|\\.ttf|\\.woff|\\.txt|\\.pdf$ / [L]'
-
-  ]));
-
-  // We are going to protect /api routes with JWT
-  app.use(['/v1', '/asset', '/storage', '/admin', '/energy', '/api', '/test', '/chilleranalyser'], expressJwt({
-    secret: config.secret,
-    credentialsRequired: false,
-    getToken: function fromHeaderOrQuerystring (req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-          return req.query.token;
-        }
-        return null;
-      }
-  }), function(req, res, next) {
-      if (req.user) req.user = JSON.parse(decodeURI(req.user));
-      next();
-  });
-
-  app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", 'Authorization, Content-Type');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    next();
-  }).options('*', function(req, res, next){
-    res.end();
-  });
-
-  app.disable('x-powered-by');
-
-  // app.use(function(err, req, res, next) {
-  //   console.error(err);
-  //   console.log(err.msg);
-  //   console.log(err.status);
-  //   res.status(500).send(err);
-  // });
-  // app.use(seo());
-};
+module.exports = app;
