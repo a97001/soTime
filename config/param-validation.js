@@ -79,11 +79,12 @@ module.exports = {
 					lon: Joi.number()
 				},
 				name: Joi.string()
-			}
+			},
+			isPublic: Joi.boolean().required()
 		}
 	},
 
-	// POST /users/:userId/events/:eventId
+	// PUT /users/:userId/events/:eventId
 	updateUserEvent: {
 		options: {
 			allowUnknownParams: false,
@@ -101,7 +102,30 @@ module.exports = {
 					lon: Joi.number()
 				},
 				name: Joi.string()
-			}
+			},
+			isPublic: Joi.boolean().required()
+		}
+	},
+
+	// POST /groups
+	createGroup: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			name: Joi.string().min(1).max(50).required(),
+			isPublic: Joi.boolean().required()
+		}
+	},
+
+	// PUT /groups/:groupId
+	updateGroup: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			name: Joi.string().min(1).max(50).required(),
+			isPublic: Joi.boolean().required()
 		}
 	},
 
