@@ -372,6 +372,18 @@ module.exports = {
   },
 
   /**
+   * Show my groups
+   */
+  showMyGroups(req, res, next) {
+    co(function* () {
+      const me = yield User.findOne({ _id: req.me._id }, 'groups_id').populate('groups_id', 'name icon isPublic').lean().exec();
+      return res.json(me.groups_id);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
    * delete user event
    */
   deleteUserEvent(req, res, next) {

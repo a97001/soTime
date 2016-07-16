@@ -13,20 +13,9 @@ const GroupSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
 	},
-	members_id: [{
-		type: Schema.Types.ObjectId,
-		ref: 'User'
-	}],
   memberCounter: {
     type: Number
   },
-	followers_id: [{
-		// user: {
-		type: Schema.Types.ObjectId,
-		ref: 'User'
-		// },
-		// types: []
-	}],
   followerCounter: {
     type: Number
   },
@@ -40,11 +29,10 @@ const GroupSchema = new Schema({
 	name: {
 		type: String
 	},
-	icon: {
-		type: Schema.Types.ObjectId
-	},
-  hasIcon: {
-    type: Boolean
+  icon: {
+    type: Schema.Types.ObjectId,
+    ref: 'FsFile',
+    default: null
   },
 	isPublic: Boolean,
 	authentication: {

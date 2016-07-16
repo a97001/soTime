@@ -91,9 +91,6 @@ const UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Group'
   },
-  groupType: {
-    type: Schema.Types.Mixed
-  },
   followType: {
     type: Schema.Types.Mixed
   }

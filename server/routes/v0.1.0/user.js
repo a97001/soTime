@@ -296,6 +296,21 @@ router.route('/:userId/events')
 */
 	.get(validate(paramValidation.showUserEvents), userCtrl.showUserEvents);
 
+router.route('/me/groups')
+/**
+* @api {get} /users/me/groups Show user groups
+* @apiVersion 0.1.0
+* @apiGroup Users
+* @apiSuccessExample {json} Success
+*    [{
+*      "_id": ObjectId,
+*      "name": "fishGay is gay",
+*      "icon": ObjectId,
+*      "isPublic": false
+*    }]
+*/
+	.get(userCtrl.showMyGroups);
+
 /** Load user when API with userId route parameter is hit */
 router.param('userId', userCtrl.load);
 router.param('user_eventId', userCtrl.loadUserEvent);
