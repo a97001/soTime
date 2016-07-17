@@ -91,6 +91,22 @@ module.exports = {
 		}).catch((err) => {
 			next(err);
 		});
+	},
+
+	/**
+	 * Delete group
+	 */
+	deleteGroup(req, res, next) {
+		co(function* () {
+			if (req.group.host_id.toString() !== req.me._id.toString()) {
+				return res.status(403).end();
+			}
+			yield Group.remove({_id: req.group._id}).exec();
+			yield User.update({$or: [{groups_id: req.group._id}, {follows_id: req.group._id}]}, {$pull: {groups_id: req.group._id, follows_id: req.group._id}}, {multi: true}).exec();
+			return res.json({_id: req.group._id});
+		}).catch((err) => {
+			next(err);
+		});
 	}
 
 };

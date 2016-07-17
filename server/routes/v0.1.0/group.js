@@ -38,7 +38,7 @@ router.route('/')
 
 router.route('/:groupId')
 /**
-* @api {put} /groups Update group
+* @api {put} /groups/:groupId Update group
 * @apiVersion 0.1.0
 * @apiGroup Groups
 * @apiParam {String} name Group Name
@@ -64,7 +64,18 @@ router.route('/:groupId')
 *      "isPublic": false
 *    }]
 */
-	.put(validate(paramValidation.updateGroup), groupCtrl.updateGroup);
+	.put(validate(paramValidation.updateGroup), groupCtrl.updateGroup)
+
+/**
+* @api {delete} /groups/:groupId Delete group
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "_id": ObjectId
+*    }
+*/
+	.delete(groupCtrl.deleteGroup);
 
 router.param('groupId', groupCtrl.load);
 

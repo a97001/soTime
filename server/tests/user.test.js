@@ -304,6 +304,20 @@ describe('## User APIs', () => {
 				});
 			});
 		});
+
+		describe('# DELETE /v0.1.0/groups/:groupId', () => {
+			it('should delete group', (done) => {
+				request(app)
+				.delete(`/v0.1.0/groups/${group._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					expect(res.body._id).to.equal(group._id);
+					done();
+				});
+			});
+		});
 	});
 
 	after(() => {
