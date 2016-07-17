@@ -83,14 +83,16 @@ const UserSchema = new Schema({
     default: null
   },
   settings: Object,
-  groups_id: {
+  groups_id: [{
     type: Schema.Types.ObjectId,
-    ref: 'Group'
-  },
-  follows_id: {
+    ref: 'Group',
+    default: []
+  }],
+  follows_id: [{
     type: Schema.Types.ObjectId,
-    ref: 'Group'
-  },
+    ref: 'Group',
+    default: []
+  }],
   followType: {
     type: Schema.Types.Mixed
   }

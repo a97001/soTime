@@ -3,6 +3,8 @@ const validate = require('express-validation');
 const paramValidation = require('../../../config/param-validation');
 const passport = require('passport');
 const groupCtrl = require('../../controllers/v0.1.0/group');
+const routeChecker = require('../../helpers/RouteChecker');
+
 
 const router = express.Router();	// eslint-disable-line new-cap
 
@@ -76,6 +78,33 @@ router.route('/:groupId')
 *    }
 */
 	.delete(groupCtrl.deleteGroup);
+
+router.route('/:groupId/icons')
+/**
+* @api {put} /groups/:groupId/icons Update group icon
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiParam {String[]} uploadedDocs Uploaded Icon
+* @apiParamExample {json} Input
+*    {
+*      "uploadedDocs": Array
+*    }
+* @apiSuccessExample {json} Success
+*    {
+*      "icon": ObjectId
+*    }
+*/
+	.put(routeChecker.checkGroupPrivilege, groupCtrl.updateGroupIcon);
+
+router.route('/:groupId/icons/:iconId')
+/**
+* @api {get} /groups/:groupId/icons/:iconId Show group icon
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*			image file
+*/
+	.get(groupCtrl.showGroupIcon);
 
 router.param('groupId', groupCtrl.load);
 

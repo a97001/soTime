@@ -1,7 +1,7 @@
 const co = require('co');
 const moment = require('moment');
 const imageUploader = require('../../helpers/ImageUploader');
-// const Grid = require('gridfs-stream');
+const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const config = require('../../../config/env');
 
@@ -10,11 +10,11 @@ const FsFile = require('../../models/fsfile');
 const Event = require('../../models/event');
 const Group = require('../../models/group');
 
-// Grid.mongo = mongoose.mongo;
-// let gfs = null;
-// mongoose.connection.once('open', () => {
-//   gfs = new Grid(mongoose.connection.db);
-// });
+Grid.mongo = mongoose.mongo;
+let gfs = null;
+mongoose.connection.once('open', () => {
+  gfs = new Grid(mongoose.connection.db);
+});
 
 module.exports = {
 	/**
@@ -104,6 +104,54 @@ module.exports = {
 			yield Group.remove({ _id: req.group._id }).exec();
 			yield User.update({ $or: [{ groups_id: req.group._id }, { follows_id: req.group._id }] }, { $pull: { groups_id: req.group._id, follows_id: req.group._id } }, { multi: true }).exec();
 			return res.json({ _id: req.group._id });
+		}).catch((err) => {
+			next(err);
+		});
+	},
+
+	/**
+	 * Show group icon
+	 */
+	showGroupIcon(req, res, next) {
+		co(function* () {
+			const fsFile = yield FsFile.findOne({ _id: req.group.icon, 'metadata.type': 'icon' }).lean().exec();
+			if (fsFile) {
+				res.writeHead(200, {
+					'Content-Length': fsFile.length,
+					'content-Type': fsFile.contentType
+				});
+				gfs.createReadStream({
+					_id: fsFile._id
+				}).pipe(res);
+			} else {
+				res.status(404).end();
+			}
+		}).catch((err) => {
+			next(err);
+		});
+	},
+
+	/**
+	 * Update group icon
+	 */
+	updateGroupIcon(req, res, next) {
+		co(function* () {
+			if (req.groupPrivilege !== 'm') {
+				return res.status(403).end();
+			}
+			const me = new User(req.me);
+			const body = req.body;
+			const files = body.uploadedDocs;
+			imageUploader(me, files[0], req.group, 'icon', res, (fsFile) => {
+				Group.update({ _id: req.group._id }, { $set: { icon: fsFile._id } }, (err) => {
+					if (err) {
+						console.log(err);
+						return res.status(500).end();
+					}
+					return res.status(201).json({ icon: fsFile._id });
+				});
+			});
+			return 0;
 		}).catch((err) => {
 			next(err);
 		});

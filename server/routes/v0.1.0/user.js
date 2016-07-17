@@ -108,9 +108,9 @@ router.route('/me')
 */
 	.get(userCtrl.showMe);
 
-router.route('/me/icon')
+router.route('/me/icons')
 /**
-* @api {put} /users/me/icon Update user icon
+* @api {put} /users/me/icons Update user icon
 * @apiVersion 0.1.0
 * @apiGroup Users
 * @apiParam {String[]} uploadedDocs Uploaded Icon
@@ -135,9 +135,9 @@ router.route('/:userId')
 	/** DELETE /api/users/:userId - Delete user */
 	.delete(userCtrl.remove);
 
-router.route('/:userId/icon/:iconId')
+router.route('/:userId/icons/:iconId')
 /**
-* @api {get} /users/:userId/icon/:iconId Show user icon
+* @api {get} /users/:userId/icons/:iconId Show user icon
 * @apiVersion 0.1.0
 * @apiGroup Users
 * @apiSuccessExample {json} Success

@@ -72,10 +72,10 @@ describe('## User APIs', () => {
 			});
 		});
 
-		describe('# PUT /v0.1.0/users/me/icon', () => {
+		describe('# PUT /v0.1.0/users/me/icons', () => {
 			it('should update user icon', (done) => {
 				request(app)
-				.put('/v0.1.0/users/me/icon')
+				.put('/v0.1.0/users/me/icons')
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.send({ uploadedDocs: [{ name: 'icon1.jpg', type: 'jpg' }] })
 				.expect(httpStatus.CREATED)
@@ -87,10 +87,10 @@ describe('## User APIs', () => {
 			});
 		});
 
-		describe('# GET /v0.1.0/users/:userId/icon/:iconId', () => {
+		describe('# GET /v0.1.0/users/:userId/icons/:iconId', () => {
 			it('should get user icon', (done) => {
 				request(app)
-				.get(`/v0.1.0/users/${decodedMe._id}/icon/${decodedMe.icon}`)
+				.get(`/v0.1.0/users/${decodedMe._id}/icons/${decodedMe.icon}`)
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.expect(httpStatus.OK)
 				.then(res => {
@@ -300,6 +300,33 @@ describe('## User APIs', () => {
 				.then(res => {
 					should.exist(res.body._id);
 					expect(res.body.name).to.equal('fishGay is very gay');
+					done();
+				});
+			});
+		});
+
+		describe('# PUT /v0.1.0/group/:groupId/icons', () => {
+			it('should update group icon', (done) => {
+				request(app)
+				.put(`/v0.1.0/groups/${group._id}/icons`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({ uploadedDocs: [{ name: 'icon1.jpg', type: 'jpg' }] })
+				.expect(httpStatus.CREATED)
+				.then(res => {
+					should.exist(res.body.icon);
+					group.icon = res.body.icon;
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/groups/:groupId/icons/:iconId', () => {
+			it('should get group icon', (done) => {
+				request(app)
+				.get(`/v0.1.0/groups/${group._id}/icons/${group.icon}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
 					done();
 				});
 			});
