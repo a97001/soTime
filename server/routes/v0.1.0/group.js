@@ -106,6 +106,47 @@ router.route('/:groupId/icons/:iconId')
 */
 	.get(groupCtrl.showGroupIcon);
 
+router.route('/:groupId/invitations')
+/**
+* @api {get} /groups/:groupId/invitations Show invited users
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    [{
+*      "_id": ObjectId,
+*      "username": "fishGay",
+*    }]
+*/
+	.get(routeChecker.checkGroupPrivilege, groupCtrl.showInvitedUsers)
+
+/**
+* @api {post} /groups/:groupId/invitations Invite group member
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiParam {ObjectId} user Invited User
+* @apiParamExample {json} Input
+*    {
+*      "user": ObjectId
+*    }
+* @apiSuccessExample {json} Success
+*    {
+*      "invitedUser": ObjectId
+*    }
+*/
+	.post(validate(paramValidation.inviteGroupMember), routeChecker.checkGroupPrivilege, groupCtrl.inviteGroupMember);
+
+router.route('/:groupId/invitations/:invitation_userId')
+/**
+* @api {delete} /groups/:groupId/invitations/:userId Disinvite group member
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "disinvitedUser": ObjectId
+*    }
+*/
+	.delete(routeChecker.checkGroupPrivilege, groupCtrl.disinviteGroupMember);
+
 router.param('groupId', groupCtrl.load);
 
 module.exports = router;

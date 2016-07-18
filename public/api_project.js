@@ -1,1 +1,0 @@
-define({  "name": "soTime API documentation",  "version": "0.1.0",  "description": "API task list manager",  "template": {    "forceLanguage": "en"  },  "sampleUrl": false,  "apidoc": "0.2.0",  "generator": {    "name": "apidoc",    "time": "2016-07-16T06:07:05.408Z",    "url": "http://apidocjs.com",    "version": "0.16.1"  }});

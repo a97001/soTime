@@ -155,6 +155,57 @@ module.exports = {
 		}).catch((err) => {
 			next(err);
 		});
-	}
+	},
+
+  /**
+   * Invite group member
+   */
+  inviteGroupMember(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const result = yield User.update({ _id: req.body.user, groups_id: { $ne: req.group._id } }, { $addToSet: { groupInvitations_id: req.group._id } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ invitedUser: req.body.user });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show invited users
+   */
+  showInvitedUsers(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const invitedUsers = yield User.find({ groupInvitations_id: req.group._id }, '_id username').lean().exec();
+      return res.json(invitedUsers);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Disinvite group member
+   */
+  disinviteGroupMember(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const result = yield User.update({ _id: req.params.invitation_userId }, { $pull: { groupInvitations_id: req.group._id } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ disinvitedUser: req.params.invitation_userId });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  }
 
 };

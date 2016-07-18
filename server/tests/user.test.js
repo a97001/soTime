@@ -20,7 +20,19 @@ describe('## User APIs', () => {
 		email: 'fishgay@gmail.com',
     password: '77889900'
 	};
+	const me1 = {
+		username: 'fishGay1',
+		email: 'fishgay1@gmail.com',
+		password: '77889900'
+	};
+	const me2 = {
+		username: 'fishGay2',
+		email: 'fishgay2@gmail.com',
+		password: '77889900'
+	};
 	let decodedMe = null;
+	let decodedMe1 = null;
+	let decodedMe2 = null;
 	let credential = null;
 	let event = null;
 	let group = null;
@@ -30,20 +42,51 @@ describe('## User APIs', () => {
 			it('should create a new user', (done) => {
 				request(app)
 					.post('/v0.1.0/users')
-					.send(me)
+					.send(me1)
 					.expect(httpStatus.OK)
 					.then(res => {
-						credential = res.body;
-						// expect(res.body.username).to.equal(user.username);
-						// expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-						// user = res.body;
-						done();
 					});
+				request(app)
+					.post('/v0.1.0/users')
+					.send(me2)
+					.expect(httpStatus.OK)
+					.then(res => {
+					});
+
+				request(app)
+				.post('/v0.1.0/users')
+				.send(me)
+				.expect(httpStatus.OK)
+				.then(res => {
+					credential = res.body;
+					done();
+				});
 			});
 		});
 
 		describe('# GET /v0.1.0/users/login', () => {
 			it('should login user', (done) => {
+				request(app)
+				.post('/v0.1.0/users/login')
+				.send({ email: me1.email, password: me1.password })
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.accessToken);
+					let decoded = jwt.decode(res.body.accessToken);
+					decoded = decodeURI(decoded);
+					decodedMe1 = JSON.parse(decoded);
+				});
+				request(app)
+				.post('/v0.1.0/users/login')
+				.send({ email: me2.email, password: me2.password })
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.accessToken);
+					let decoded = jwt.decode(res.body.accessToken);
+					decoded = decodeURI(decoded);
+					decodedMe2 = JSON.parse(decoded);
+				});
+
 				request(app)
 				.post('/v0.1.0/users/login')
 				.send({ email: me.email, password: me.password })
@@ -345,6 +388,59 @@ describe('## User APIs', () => {
 			});
 		});
 
+		describe('# POST /v0.1.0/groups/:groupId/invitations', () => {
+			it('should invite group member', (done) => {
+				request(app)
+				.post(`/v0.1.0/groups/${group._id}/invitations`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					user: decodedMe2._id
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+				});
+				request(app)
+				.post(`/v0.1.0/groups/${group._id}/invitations`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					user: decodedMe1._id
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.invitedUser);
+					expect(res.body.invitedUser).to.equal(decodedMe1._id);
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/groups/:groupId/invitations', () => {
+			it('should get invited users', (done) => {
+				request(app)
+				.get(`/v0.1.0/groups/${group._id}/invitations`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
+		describe('# DELETE /v0.1.0/groups/:groupId/invitations/:userId', () => {
+			it('should disinvite group member', (done) => {
+				request(app)
+				.delete(`/v0.1.0/groups/${group._id}/invitations/${decodedMe2._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.disinvitedUser);
+					expect(res.body.disinvitedUser).to.equal(decodedMe2._id);
+					done();
+				});
+			});
+		});
+
 		describe('# DELETE /v0.1.0/groups/:groupId', () => {
 			it('should delete group', (done) => {
 				request(app)
@@ -361,7 +457,7 @@ describe('## User APIs', () => {
 	});
 
 	after(() => {
-		User.remove({ email: me.email }, (err) => {
+		User.remove({}, (err) => {
 		});
 		Event.remove({}, (err) => {
 		});

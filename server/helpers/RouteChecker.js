@@ -26,12 +26,17 @@ module.exports = {
       const user = yield User.findOne({ _id: req.me._id }).lean().exec();
       const groupId = req.group._id.toString();
       req.groupPrivilege = 'x'; // non-member or not follower
+      req.hasGroupInvitation = false;
       user.groups_id = JSON.parse(JSON.stringify(user.groups_id));
       user.follows_id = JSON.parse(JSON.stringify(user.follows_id));
+      user.groupInvitations_id = JSON.parse(JSON.stringify(user.groupInvitations_id));
       if (user.groups_id.indexOf(groupId) > -1) {
         req.groupPrivilege = 'm'; // member
       } else if (user.follows_id.indexOf(groupId) > -1) {
         req.groupPrivilege = 'f'; // follower
+      }
+      if (user.groupInvitations_id.indexOf(groupId) > -1) {
+        req.hasGroupInvitation = true;
       }
       return next();
     }).catch((err) => {

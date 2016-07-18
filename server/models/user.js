@@ -88,13 +88,19 @@ const UserSchema = new Schema({
     ref: 'Group',
     default: []
   }],
+  groupInvitations_id: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Group',
+    default: []
+  }],
   follows_id: [{
     type: Schema.Types.ObjectId,
     ref: 'Group',
     default: []
   }],
   followType: {
-    type: Schema.Types.Mixed
+    type: Schema.Types.Mixed,
+    default: {}
   }
 });
 

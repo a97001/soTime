@@ -130,7 +130,7 @@ router.route('/:userId')
 	.get(userCtrl.get)
 
 	/** PUT /api/users/:userId - Update user */
-	.put(validate(paramValidation.updateUser), userCtrl.update)
+	// .put(validate(paramValidation.updateUser), userCtrl.update)
 
 	/** DELETE /api/users/:userId - Delete user */
 	.delete(userCtrl.remove);
@@ -149,7 +149,7 @@ router.route('/me/events')
 /**
 * @api {post} /users/me/events Create user event
 * @apiVersion 0.1.0
-* @apiGroup Users
+* @apiGroup Events
 * @apiParam {String} title Event Title
 * @apiParam {String} description Event Description
 * @apiParam {Date} startTime Event Start Time
@@ -202,7 +202,7 @@ router.route('/me/events/:user_eventId')
 /**
 * @api {put} /users/me/events/:eventId Update user event
 * @apiVersion 0.1.0
-* @apiGroup Users
+* @apiGroup Events
 * @apiParam {String} title Event Title
 * @apiParam {String} description Event Description
 * @apiParam {Date} startTime Event Start Time
@@ -254,7 +254,7 @@ router.route('/me/events/:user_eventId')
 /**
 * @api {delete} /users/me/events/:eventId Delete user event
 * @apiVersion 0.1.0
-* @apiGroup Users
+* @apiGroup Events
 * @apiSuccessExample {json} Success
 *    {
 *      "_id": ObjectId
@@ -266,7 +266,7 @@ router.route('/:userId/events')
 /**
 * @api {get} /users/:userId/events Show user events
 * @apiVersion 0.1.0
-* @apiGroup Users
+* @apiGroup Events
 * @apiParam {Date} from Date From
 * @apiParam {Date} to Date To
 * @apiParam {String} [type] Event Type
@@ -300,7 +300,7 @@ router.route('/me/groups')
 /**
 * @api {get} /users/me/groups Show user groups
 * @apiVersion 0.1.0
-* @apiGroup Users
+* @apiGroup Groups
 * @apiSuccessExample {json} Success
 *    [{
 *      "_id": ObjectId,
