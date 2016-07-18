@@ -58,6 +58,19 @@ describe('## User APIs', () => {
 			});
 		});
 
+		describe('# GET /v0.1.0/users/me', () => {
+			it('should get me', (done) => {
+				request(app)
+				.get('/v0.1.0/users/me')
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					done();
+				});
+			});
+		});
+
 		describe('# GET /v0.1.0/users/token', () => {
 			it('should refresh access token', (done) => {
 				request(app)

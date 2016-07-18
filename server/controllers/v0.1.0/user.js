@@ -236,7 +236,7 @@ module.exports = {
 	 */
 	showMe(req, res, next) {
 		co(function* () {
-			const me = yield User.findOne({ _id: req.user._id }).exec();
+			const me = yield User.findOne({ _id: req.me._id }).exec();
 			return res.json(me.toJSON());
 		}).catch((err) => {
 			next(err);

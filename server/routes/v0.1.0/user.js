@@ -91,7 +91,7 @@ router.route('/token')
 
 router.route('/me')
 /**
-* @api {post} /users/me Show me
+* @api {get} /users/me Show me
 * @apiVersion 0.1.0
 * @apiGroup Users
 * @apiSuccessExample {json} Success
