@@ -311,6 +311,42 @@ router.route('/me/groups')
 */
 	.get(userCtrl.showMyGroups);
 
+router.route('/me/group-invitations')
+/**
+* @api {get} /users/me/group-invitations Show my group invitations
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    [{
+*      "_id": ObjectId,
+*      "name": "fishGay is gay"
+*    }]
+*/
+	.get(userCtrl.showMyGroupInvitations);
+
+router.route('/me/group-invitations/:invitation_groupId')
+/**
+* @api {post} /users/me/group-invitations/:groupId Accept group invitation
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "acceptedGroup": ObjectId,
+*    }
+*/
+	.post(userCtrl.acceptGroupInvitation)
+
+/**
+* @api {delete} /users/me/group-invitations/:groupId Reject group invitation
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "rejectedGroup": ObjectId,
+*    }
+*/
+	.delete(userCtrl.rejectGroupInvitation);
+
 /** Load user when API with userId route parameter is hit */
 router.param('userId', userCtrl.load);
 router.param('user_eventId', userCtrl.loadUserEvent);

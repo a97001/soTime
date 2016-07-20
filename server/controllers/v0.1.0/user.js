@@ -22,6 +22,7 @@ mongoose.connection.once('open', () => {
   gfs = new Grid(mongoose.connection.db);
 });
 
+const objectId = mongoose.Types.ObjectId;
 
 module.exports = {
 	/**
@@ -392,7 +393,49 @@ module.exports = {
         return res.status(403).end();
       }
       yield Event.remove({ _id: req.event._id, user_id: req.me._id }).exec();
-      return res.status(200).json({ _id: req.event._id });
+      return res.json({ _id: req.event._id });
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show my group invitations
+   */
+  showMyGroupInvitations(req, res, next) {
+    co(function* () {
+      const me = yield User.findOne({ _id: req.me._id }, 'groupInvitations_id').populate('groupInvitations_id').lean().exec();
+      return res.json(me.groupInvitations_id);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Accept group invitation
+   */
+  acceptGroupInvitation(req, res, next) {
+    co(function* () {
+      const result = yield User.update({ _id: req.me._id, groupInvitations_id: objectId(req.params.invitation_groupId) }, { $pull: { groupInvitations_id: objectId(req.params.invitation_groupId) }, $addToSet: { groups_id: objectId(req.params.invitation_groupId) } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ acceptedGroup: req.params.invitation_groupId });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Reject group invitation
+   */
+  rejectGroupInvitation(req, res, next) {
+    co(function* () {
+      const result = yield User.update({ _id: req.me._id, groupInvitations_id: objectId(req.params.invitation_groupId) }, { $pull: { groupInvitations_id: objectId(req.params.invitation_groupId) } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ rejectedGroup: req.params.invitation_groupId });
+      }
+      return res.status(400).end();
     }).catch((err) => {
       next(err);
     });

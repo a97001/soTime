@@ -10,6 +10,7 @@ chai.config.includeStack = true;
 const expect = chai.expect;
 const should = chai.should();
 
+const RefreshToken = require('../models/refreshToken');
 const User = require('../models/user');
 const Event = require('../models/event');
 const Group = require('../models/group');
@@ -34,6 +35,8 @@ describe('## User APIs', () => {
 	let decodedMe1 = null;
 	let decodedMe2 = null;
 	let credential = null;
+	let credential1 = null;
+	let credential2 = null;
 	let event = null;
 	let group = null;
 
@@ -45,12 +48,14 @@ describe('## User APIs', () => {
 					.send(me1)
 					.expect(httpStatus.OK)
 					.then(res => {
+						credential1 = res.body;
 					});
 				request(app)
 					.post('/v0.1.0/users')
 					.send(me2)
 					.expect(httpStatus.OK)
 					.then(res => {
+						credential2 = res.body;
 					});
 
 				request(app)
@@ -441,6 +446,55 @@ describe('## User APIs', () => {
 			});
 		});
 
+		describe('# GET /v0.1.0/users/me/group-invitations', () => {
+			it('should get my group invitations', (done) => {
+				request(app)
+				.get('/v0.1.0/users/me/group-invitations')
+				.set('Authorization', `Bearer ${credential1.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
+		describe('# DELETE /v0.1.0/users/me/group-invitations/:groupId', () => {
+			it('should reject group invitation', (done) => {
+				request(app)
+				.delete(`/v0.1.0/users/me/group-invitations/${group._id}`)
+				.set('Authorization', `Bearer ${credential1.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.rejectedGroup);
+					expect(res.body.rejectedGroup).to.equal(group._id);
+					done();
+				});
+			});
+		});
+
+		describe('# POST /v0.1.0/users/me/group-invitations/:groupId', () => {
+			it('should accept group invitation', (done) => {
+				request(app)
+				.post(`/v0.1.0/groups/${group._id}/invitations`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					user: decodedMe1._id
+				})
+				.then(res =>
+					request(app)
+					.post(`/v0.1.0/users/me/group-invitations/${group._id}`)
+					.set('Authorization', `Bearer ${credential1.accessToken}`)
+					.expect(httpStatus.OK)
+				)
+				.then(res => {
+					should.exist(res.body.acceptedGroup);
+					expect(res.body.acceptedGroup).to.equal(group._id);
+					done();
+				});
+			});
+		});
+
 		describe('# DELETE /v0.1.0/groups/:groupId', () => {
 			it('should delete group', (done) => {
 				request(app)
@@ -457,6 +511,8 @@ describe('## User APIs', () => {
 	});
 
 	after(() => {
+		RefreshToken.remove({}, (err) => {
+		});
 		User.remove({}, (err) => {
 		});
 		Event.remove({}, (err) => {
