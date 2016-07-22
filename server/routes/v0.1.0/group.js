@@ -40,6 +40,19 @@ router.route('/')
 
 router.route('/:groupId')
 /**
+* @api {get} /groups/:groupId Show group
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "_id": ObjectId,
+*      "name": "fishGay",
+*      ...
+*    }
+*/
+	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroup)
+
+/**
 * @api {put} /groups/:groupId Update group
 * @apiVersion 0.1.0
 * @apiGroup Groups

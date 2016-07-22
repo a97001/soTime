@@ -392,7 +392,7 @@ module.exports = {
       if (req.event.user_id.toString() !== req.me._id.toString()) {
         return res.status(403).end();
       }
-      yield Event.remove({ _id: req.event._id, user_id: req.me._id }).exec();
+      yield Event.remove({ _id: req.event._id, user_id: req.me._id, group_id: null, friendship_id: null }).exec();
       return res.json({ _id: req.event._id });
     }).catch((err) => {
       next(err);

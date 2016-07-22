@@ -34,6 +34,9 @@ module.exports = {
 	 * Get group
 	 */
 	showGroup(req, res) {
+    if (!req.group.isPublic && req.groupPrivilege !== 'm') {
+      return res.status(404).end();
+    }
 		return res.json(req.group);
 	},
 
@@ -206,6 +209,66 @@ module.exports = {
     }).catch((err) => {
       next(err);
     });
-  }
+  },
+
+  /**
+   * Create group event
+   */
+  createGroupEvent(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      let groupMembers = yield User.aggregate([
+        { $match: { groups_id: req.group._id } },
+        { $group: {
+          _id: null,
+          members: { $push: '$_id' }
+        } }
+      ]).exec();
+      if (groupMembers && groupMembers[0] && groupMembers[0].members) {
+        groupMembers = groupMembers[0].members;
+      }
+      let newEvent = req.body;
+      newEvent.user_id = req.me._id;
+      newEvent.group_id = req.group._id;
+      newEvent.friendship_id = null;
+      newEvent.participants_id = groupMembers;
+      newEvent.participantCounter = groupMembers.length;
+      newEvent.goings_id = [];
+      newEvent.goingCounter = 0;
+      newEvent.notGoings_id = [];
+      newEvent.notGoingCounter = 0;
+      newEvent.votes = [];
+      newEvent.totalVoteCounter = 0;
+      newEvent.voteStart = null;
+      newEvent.voteEnd = null;
+      newEvent.banner = null;
+      newEvent.photos_id = [];
+      newEvent = new Event(newEvent);
+      yield newEvent.save();
+      return res.status(201).json(newEvent);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show group events
+   */
+  showGroupEvents(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const result = yield User.update({ _id: req.params.invitation_userId }, { $pull: { groupInvitations_id: req.group._id } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ disinvitedUser: req.params.invitation_userId });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  },
 
 };

@@ -329,7 +329,21 @@ describe('## User APIs', () => {
 				.expect(httpStatus.CREATED)
 				.then(res => {
 					should.exist(res.body._id);
+					should.exist(res.body.isPublic);
 					group = res.body;
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/groups/:groupId', () => {
+			it('should get groups detail', (done) => {
+				request(app)
+				.get(`/v0.1.0/groups/${group._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
 					done();
 				});
 			});
