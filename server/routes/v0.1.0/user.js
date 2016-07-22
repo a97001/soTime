@@ -7,9 +7,25 @@ const userCtrl = require('../../controllers/v0.1.0/user');
 const router = express.Router();	// eslint-disable-line new-cap
 
 router.route('/')
-	/** GET /api/users - Get list of users */
+/**
+* @api {get} /users Search users
+* @apiVersion 0.1.0
+* @apiGroup Users
+* @apiParam {String} query Part of username or email
+* @apiParamExample {json} Input
+*    {
+*      "query": "gay"
+*    }
+* @apiSuccessExample {json} Success
+*    {
+*      "_id": "ObjectId",
+*      "username": "fishGay",
+*      "email": "fishGay@gmail.com",
+*      "icon": "ObjectId"
+*    }
+*/
 
-	.get(userCtrl.list)
+	.get(userCtrl.searchUsers)
 
 	/**
  * @api {post} /users Create a user

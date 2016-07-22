@@ -199,7 +199,10 @@ const UserSchema = new Schema({
    }
  };
 
+ UserSchema.index({ username: 'text', email: 'text' });
+
 /**
  * @typedef User
  */
+
 module.exports = mongoose.model('User', UserSchema);

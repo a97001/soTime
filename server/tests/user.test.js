@@ -264,6 +264,22 @@ describe('## User APIs', () => {
 			});
 		});
 
+		describe('# GET /v0.1.0/users', () => {
+			it('should search users', (done) => {
+				request(app)
+				.get('/v0.1.0/users')
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.query({
+					query: 'gay1'
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
 	//
 	// 		it('should report error with message - Not found, when user does not exists', (done) => {
 	// 			request(app)
