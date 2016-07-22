@@ -447,7 +447,6 @@ module.exports = {
   searchUsers(req, res, next) {
     co(function* () {
       const users = yield User.find({ $or: [{ username: { $regex: req.query.query, $options: 'i' } }, { email: { $regex: req.query.query, $options: 'i' } }] }, 'username email icon').sort({ username: 1, email: 1 }).limit(10).lean().exec();
-      console.log(users);
       return res.json(users);
     }).catch((err) => {
       next(err);

@@ -137,6 +137,64 @@ module.exports = {
 		body: {
 			user: Joi.objectId().required()
 		}
+	},
+
+	// GET /groups/:groupId/events
+	showGroupEvents: {
+		options: {
+			allowUnknownParams: false,
+		},
+		query: {
+			from: Joi.date().iso().required(),
+			to: Joi.date().iso().required(),
+			type: Joi.string()
+		}
+	},
+
+	// POST /groups/:groupId/events
+	createGroupEvent: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			title: Joi.string().min(1).max(50).required(),
+			description: Joi.string().required(),
+			type: Joi.string().required(),
+			startTime: Joi.date().iso().required(),
+			allDay: Joi.boolean().required(),
+			endTime: Joi.date().iso().required(),
+			venue: {
+				coordinates: {
+					lat: Joi.number(),
+					lon: Joi.number()
+				},
+				name: Joi.string()
+			},
+			isPublic: Joi.boolean().required()
+		}
+	},
+
+	// PUT /groups/:groupId/events/:eventId
+	updateGroupEvent: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			title: Joi.string().min(1).max(50).required(),
+			description: Joi.string().required(),
+			type: Joi.string().required(),
+			startTime: Joi.date().iso().required(),
+			allDay: Joi.boolean().required(),
+			endTime: Joi.date().iso().required(),
+			venue: {
+				coordinates: {
+					lat: Joi.number(),
+					lon: Joi.number()
+				},
+				name: Joi.string()
+			},
+			isPublic: Joi.boolean().required()
+		}
 	}
 
 	// // UPDATE /api/users/:userId

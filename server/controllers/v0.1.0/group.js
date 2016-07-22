@@ -30,6 +30,22 @@ module.exports = {
 		});
 	},
 
+  /**
+   * Load group event
+   */
+  loadGroupEvent(req, res, next, id) {
+    co(function* () {
+      const event = yield Event.findOne({ _id: id, group_id: req.group._id }).exec();
+      if (!event) {
+        return res.status(404).end();
+      }
+      req.event = event;
+      return next();
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
 	/**
 	 * Get group
 	 */
@@ -258,17 +274,71 @@ module.exports = {
    */
   showGroupEvents(req, res, next) {
     co(function* () {
-      if (req.groupPrivilege !== 'm') {
+      if (!req.group.isPublic && req.groupPrivilege !== 'm') {
         return res.status(403).end();
       }
-      const result = yield User.update({ _id: req.params.invitation_userId }, { $pull: { groupInvitations_id: req.group._id } }).exec();
-      if (result.nModified === 1) {
-        return res.json({ disinvitedUser: req.params.invitation_userId });
+      let events = [];
+      let query = null;
+      if (req.groupPrivilege === 'm') {
+        query = { group_id: req.group._id, friendship_id: null, startTime: { $lte: new Date(req.query.to) }, endTime: { $gte: new Date(req.query.from) }, $or: [{ participants_id: req.me._id }, { isPublic: true }] };
+      } else {
+        query = { group_id: req.group._id, friendship_id: null, startTime: { $lte: new Date(req.query.to) }, endTime: { $gte: new Date(req.query.from), isPublic: true } };
       }
-      return res.status(400).end();
+      if (req.query.type) {
+        query.type = req.query.type;
+      }
+      events = yield Event.find(query, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+      return res.json(events);
     }).catch((err) => {
       next(err);
     });
   },
+
+  /**
+   * Update group event
+   */
+  updateGroupEvent(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      let newEvent = req.body;
+      newEvent.user_id = req.event.user_id;
+      newEvent.group_id = req.event.group_id;
+      newEvent.friendship_id = null;
+      newEvent.participants_id = req.event.participants_id;
+      newEvent.participantCounter = req.event.participantCounter;
+      newEvent.goings_id = req.event.goings_id;
+      newEvent.goingCounter = req.event.goingCounter;
+      newEvent.notGoings_id = req.event.notGoings_id;
+      newEvent.notGoingCounter = req.event.notGoingCounter;
+      newEvent.votes = req.event.votes;
+      newEvent.totalVoteCounter = req.event.totalVoteCounter;
+      newEvent.voteStart = req.event.voteStart;
+      newEvent.voteEnd = req.event.voteEnd;
+      newEvent.banner = req.event.banner;
+      newEvent.photos_id = req.event.photos_id;
+      newEvent = new Event(newEvent);
+      yield newEvent.save();
+      return res.json(newEvent);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Delete group event
+   */
+  deleteGroupEvent(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      yield Event.remove({ _id: req.event._id, group_id: req.group._id, friendship_id: null }).exec();
+      return res.json({ _id: req.event._id });
+    }).catch((err) => {
+      next(err);
+    });
+  }
 
 };

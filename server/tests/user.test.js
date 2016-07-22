@@ -173,97 +173,6 @@ describe('## User APIs', () => {
 			});
 		});
 
-		describe('# POST /v0.1.0/users/me/events', () => {
-			it('should create user event', (done) => {
-				request(app)
-				.post('/v0.1.0/users/me/events')
-				.set('Authorization', `Bearer ${credential.accessToken}`)
-				.send({
-					title: 'fishGay is gay',
-					description: 'fishGay is very gay',
-					type: 'gay',
-					startTime: new Date(),
-					allDay: false,
-					endTime: new Date(),
-					venue: {
-						coordinates: {
-							lat: 0,
-							lon: 0
-						},
-						name: 'Home'
-					},
-					isPublic: true
-				})
-				.expect(httpStatus.CREATED)
-				.then(res => {
-					should.exist(res.body._id);
-					event = res.body;
-					done();
-				});
-			});
-		});
-
-		describe('# GET /v0.1.0/users/:userId/events', () => {
-			it('should get user events', (done) => {
-				request(app)
-				.get(`/v0.1.0/users/${decodedMe._id}/events`)
-				.set('Authorization', `Bearer ${credential.accessToken}`)
-				.query({
-					from: new Date(99, 5, 24),
-					to: new Date()
-				})
-				.expect(httpStatus.OK)
-				.then(res => {
-					expect(res.body).to.have.length.above(0);
-					done();
-				});
-			});
-		});
-
-		describe('# PUT /v0.1.0/users/me/events/:eventId', () => {
-			it('should update user event', (done) => {
-				request(app)
-				.put(`/v0.1.0/users/me/events/${event._id}`)
-				.set('Authorization', `Bearer ${credential.accessToken}`)
-				.send({
-					title: 'fishGay is very gay',
-					description: 'fishGay is very gay',
-					type: 'gay',
-					startTime: new Date(),
-					allDay: false,
-					endTime: new Date(),
-					venue: {
-						coordinates: {
-							lat: 0,
-							lon: 0
-						},
-						name: 'Home'
-					},
-					isPublic: true
-				})
-				.expect(httpStatus.OK)
-				.then(res => {
-					should.exist(res.body._id);
-					expect(res.body.title).to.equal('fishGay is very gay');
-					done();
-				});
-			});
-		});
-
-		describe('# DELETE /v0.1.0/users/me/events/:eventId', () => {
-			it('should delete user event', (done) => {
-				request(app)
-				.delete(`/v0.1.0/users/me/events/${event._id}`)
-				.set('Authorization', `Bearer ${credential.accessToken}`)
-				.expect(httpStatus.OK)
-				.then(res => {
-					should.exist(res.body._id);
-					expect(res.body._id).to.equal(event._id);
-					done();
-				});
-			});
-		});
-
 		describe('# GET /v0.1.0/users', () => {
 			it('should search users', (done) => {
 				request(app)
@@ -524,7 +433,193 @@ describe('## User APIs', () => {
 				});
 			});
 		});
+	});
 
+	describe('## Events', () => {
+		describe('# POST /v0.1.0/users/me/events', () => {
+			it('should create user event', (done) => {
+				request(app)
+				.post('/v0.1.0/users/me/events')
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					title: 'fishGay is gay',
+					description: 'fishGay is very gay',
+					type: 'gay',
+					startTime: new Date(),
+					allDay: false,
+					endTime: new Date(),
+					venue: {
+						coordinates: {
+							lat: 0,
+							lon: 0
+						},
+						name: 'Home'
+					},
+					isPublic: true
+				})
+				.expect(httpStatus.CREATED)
+				.then(res => {
+					should.exist(res.body._id);
+					event = res.body;
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/users/:userId/events', () => {
+			it('should get user events', (done) => {
+				request(app)
+				.get(`/v0.1.0/users/${decodedMe._id}/events`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.query({
+					from: new Date(99, 5, 24),
+					to: new Date()
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
+		describe('# PUT /v0.1.0/users/me/events/:eventId', () => {
+			it('should update user event', (done) => {
+				request(app)
+				.put(`/v0.1.0/users/me/events/${event._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					title: 'fishGay is very gay',
+					description: 'fishGay is very gay',
+					type: 'gay',
+					startTime: new Date(),
+					allDay: false,
+					endTime: new Date(),
+					venue: {
+						coordinates: {
+							lat: 0,
+							lon: 0
+						},
+						name: 'Home'
+					},
+					isPublic: true
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					expect(res.body.title).to.equal('fishGay is very gay');
+					done();
+				});
+			});
+		});
+
+		describe('# DELETE /v0.1.0/users/me/events/:eventId', () => {
+			it('should delete user event', (done) => {
+				request(app)
+				.delete(`/v0.1.0/users/me/events/${event._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					expect(res.body._id).to.equal(event._id);
+					done();
+				});
+			});
+		});
+
+		describe('# POST /v0.1.0/groups/:groupId/events', () => {
+			it('should create group event', (done) => {
+				request(app)
+				.post(`/v0.1.0/groups/${group._id}/events`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					title: 'fishGay is gay',
+					description: 'fishGay is very gay',
+					type: 'gay',
+					startTime: new Date(),
+					allDay: false,
+					endTime: new Date(),
+					venue: {
+						coordinates: {
+							lat: 0,
+							lon: 0
+						},
+						name: 'Home'
+					},
+					isPublic: true
+				})
+				.expect(httpStatus.CREATED)
+				.then(res => {
+					should.exist(res.body._id);
+					event = res.body;
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/groups/:groupId/events', () => {
+			it('should get group events', (done) => {
+				request(app)
+				.get(`/v0.1.0/groups/${group._id}/events`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.query({
+					from: new Date(99, 5, 24),
+					to: new Date()
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
+		describe('# PUT /v0.1.0/groups/:groupId/events/:eventId', () => {
+			it('should update group event', (done) => {
+				request(app)
+				.put(`/v0.1.0/groups/${group._id}/events/${event._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.send({
+					title: 'fishGay is very gay',
+					description: 'fishGay is very gay',
+					type: 'gay',
+					startTime: new Date(),
+					allDay: false,
+					endTime: new Date(),
+					venue: {
+						coordinates: {
+							lat: 0,
+							lon: 0
+						},
+						name: 'Home'
+					},
+					isPublic: true
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					expect(res.body.title).to.equal('fishGay is very gay');
+					done();
+				});
+			});
+		});
+
+		describe('# DELETE /v0.1.0/groups/:groupId/events/:eventId', () => {
+			it('should delete group event', (done) => {
+				request(app)
+				.delete(`/v0.1.0/groups/${group._id}/events/${event._id}`)
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body._id);
+					expect(res.body._id).to.equal(event._id);
+					done();
+				});
+			});
+		});
+	});
+
+	describe('## Groups', () => {
 		describe('# DELETE /v0.1.0/groups/:groupId', () => {
 			it('should delete group', (done) => {
 				request(app)

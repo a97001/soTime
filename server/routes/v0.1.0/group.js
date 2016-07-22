@@ -160,6 +160,157 @@ router.route('/:groupId/invitations/:invitation_userId')
 */
 	.delete(routeChecker.checkGroupPrivilege, groupCtrl.disinviteGroupMember);
 
+router.route('/:groupId/events')
+/**
+* @api {get} /groups/:groupId/events Show group events
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiParam {Date} from Date From
+* @apiParam {Date} to Date To
+* @apiParam {String} [type] Event Type
+* @apiParamExample {json} Input
+*    {
+*      "from": Date,
+*      "to": Date,
+*      "type": "gay",
+*    }
+* @apiSuccessExample {json} Success
+*    [{
+*      "title": "fishGay is gay",
+*      "description": "fishGay is very gay",
+*      "type": "gay",
+*      "startTime": Date,
+*      "allDay": false,
+*      "endTime": Date,
+*      "venue": {
+*        "coordinates": {
+*          "lat": Number,
+*          "lon": Number
+*        },
+*        name: "Home"
+*      },
+*      "isPublic": true
+*    }]
+*/
+	.get(validate(paramValidation.showGroupEvents), routeChecker.checkGroupPrivilege, groupCtrl.showGroupEvents)
+
+/**
+* @api {post} /groups/:groupId/events Create group event
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiParam {String} title Event Title
+* @apiParam {String} description Event Description
+* @apiParam {Date} startTime Event Start Time
+* @apiParam {Boolean} allDay Is All Day Event
+* @apiParam {Date} endTime Event End Time
+* @apiParam {Object} venue Event Venue
+* @apiParam {Object} venue.coordinates Event Venue coordinates
+* @apiParam {Number} venue.coordinates.lat Event Venue Latitude
+* @apiParam {Number} venue.coordinates.lon Event Venue Longitude
+* @apiParam {Number} venue.name Event Venue Name
+* @apiParam {Boolean} isPublic Is Event Public
+* @apiParamExample {json} Input
+*    {
+*      "title": "fishGay is gay",
+*      "description": "fishGay is very gay",
+*      "type": "gay",
+*      "startTime": Date,
+*      "allDay": false,
+*      "endTime": Date,
+*      "venue": {
+*        "coordinates": {
+*          "lat": Number,
+*          "lon": Number
+*        },
+*        name: "Home"
+*      },
+*      "isPublic": true
+*    }
+* @apiSuccessExample {json} Success
+*    [{
+*      "title": "fishGay is gay",
+*      "description": "fishGay is very gay",
+*      "type": "gay",
+*      "startTime": Date,
+*      "allDay": false,
+*      "endTime": Date,
+*      "venue": {
+*        "coordinates": {
+*          "lat": Number,
+*          "lon": Number
+*        },
+*        name: "Home"
+*      },
+*      "isPublic": true
+*    }]
+*/
+	.post(validate(paramValidation.createGroupEvent), routeChecker.checkGroupPrivilege, groupCtrl.createGroupEvent);
+
+router.route('/:groupId/events/:group_eventId')
+/**
+* @api {put} /groups/:groupId/events/:eventId Update group event
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiParam {String} title Event Title
+* @apiParam {String} description Event Description
+* @apiParam {Date} startTime Event Start Time
+* @apiParam {Boolean} allDay Is All Day Event
+* @apiParam {Date} endTime Event End Time
+* @apiParam {Object} venue Event Venue
+* @apiParam {Object} venue.coordinates Event Venue coordinates
+* @apiParam {Number} venue.coordinates.lat Event Venue Latitude
+* @apiParam {Number} venue.coordinates.lon Event Venue Longitude
+* @apiParam {Number} venue.name Event Venue Name
+* @apiParam {Boolean} isPublic Is Event Public
+* @apiParamExample {json} Input
+*    {
+*      "title": "fishGay is gay",
+*      "description": "fishGay is very gay",
+*      "type": "gay",
+*      "startTime": Date,
+*      "allDay": false,
+*      "endTime": Date,
+*      "venue": {
+*        "coordinates": {
+*          "lat": Number,
+*          "lon": Number
+*        },
+*        name: "Home"
+*      },
+*      "isPublic": true
+*    }
+* @apiSuccessExample {json} Success
+*    [{
+*      "title": "fishGay is gay",
+*      "description": "fishGay is very gay",
+*      "type": "gay",
+*      "startTime": Date,
+*      "allDay": false,
+*      "endTime": Date,
+*      "venue": {
+*        "coordinates": {
+*          "lat": Number,
+*          "lon": Number
+*        },
+*        name: "Home"
+*      },
+*      "isPublic": true
+*    }]
+*/
+	.put(validate(paramValidation.updateGroupEvent), routeChecker.checkGroupPrivilege, groupCtrl.updateGroupEvent)
+
+/**
+* @api {delete} /groups/:groupId/events/:eventId Delete group event
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiSuccessExample {json} Success
+*    {
+*      "_id": ObjectId
+*    }
+*/
+	.delete(routeChecker.checkGroupPrivilege, groupCtrl.deleteGroupEvent);
+
 router.param('groupId', groupCtrl.load);
+router.param('group_eventId', groupCtrl.loadGroupEvent);
 
 module.exports = router;
