@@ -442,6 +442,48 @@ module.exports = {
   },
 
   /**
+   * Follow group
+   */
+  followGroup(req, res, next) {
+    co(function* () {
+      if (!req.group.isPublic) {
+        return res.status(403).end();
+      }
+      if (req.groupPrivilege !== 'x') {
+        return res.status(400).end();
+      }
+      const result = yield User.update({ _id: req.me._id, groups_id: { $ne: req.group._id }, follows_id: { $ne: req.group._id } }, { $addToSet: { follows_id: req.group._id } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ followedGroup: req.group._id });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Unfollow group
+   */
+  unfollowGroup(req, res, next) {
+    co(function* () {
+      if (!req.group.isPublic) {
+        return res.status(403).end();
+      }
+      if (req.groupPrivilege !== 'f') {
+        return res.status(400).end();
+      }
+      const result = yield User.update({ _id: req.me._id, groups_id: { $ne: req.group._id }, follows_id: req.group._id }, { $pull: { follows_id: req.group._id } }).exec();
+      if (result.nModified === 1) {
+        return res.json({ unfollowedGroup: req.group._id });
+      }
+      return res.status(400).end();
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
    * Search users
    */
   searchUsers(req, res, next) {

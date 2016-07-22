@@ -3,6 +3,8 @@ const validate = require('express-validation');
 const paramValidation = require('../../../config/param-validation');
 const passport = require('passport');
 const userCtrl = require('../../controllers/v0.1.0/user');
+const groupCtrl = require('../../controllers/v0.1.0/group');
+const routeChecker = require('../../helpers/RouteChecker');
 
 const router = express.Router();	// eslint-disable-line new-cap
 
@@ -363,8 +365,33 @@ router.route('/me/group-invitations/:invitation_groupId')
 */
 	.delete(userCtrl.rejectGroupInvitation);
 
+router.route('/me/followings/:groupId')
+/**
+* @api {post} /users/me/followings/:groupId Follow group
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "followedGroup": ObjectId,
+*    }
+*/
+	.post(routeChecker.checkGroupPrivilege, userCtrl.followGroup)
+
+/**
+* @api {delete} /users/me/followings/:groupId Unfollow group
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiSuccessExample {json} Success
+*    {
+*      "unfollowedGroup": ObjectId,
+*    }
+*/
+	.delete(routeChecker.checkGroupPrivilege, userCtrl.unfollowGroup);
+
 /** Load user when API with userId route parameter is hit */
 router.param('userId', userCtrl.load);
+router.param('groupId', groupCtrl.load);
 router.param('user_eventId', userCtrl.loadUserEvent);
+
 
 module.exports = router;

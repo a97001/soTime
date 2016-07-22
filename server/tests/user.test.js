@@ -249,7 +249,7 @@ describe('## User APIs', () => {
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.send({
 					name: 'fishGay is gay',
-					isPublic: false
+					isPublic: true
 				})
 				.expect(httpStatus.CREATED)
 				.then(res => {
@@ -294,7 +294,7 @@ describe('## User APIs', () => {
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.send({
 					name: 'fishGay is very gay',
-					isPublic: false
+					isPublic: true
 				})
 				.expect(httpStatus.OK)
 				.then(res => {
@@ -429,6 +429,33 @@ describe('## User APIs', () => {
 				.then(res => {
 					should.exist(res.body.acceptedGroup);
 					expect(res.body.acceptedGroup).to.equal(group._id);
+					done();
+				});
+			});
+		});
+
+		describe('# POST /v0.1.0/users/me/followings/:groupId', () => {
+			it('should follow group', (done) => {
+				request(app)
+				.post(`/v0.1.0/users/me/followings/${group._id}`)
+				.set('Authorization', `Bearer ${credential2.accessToken}`)
+				.then(res => {
+					should.exist(res.body.followedGroup);
+					expect(res.body.followedGroup).to.equal(group._id);
+					done();
+				});
+			});
+		});
+
+		describe('# DELETE /v0.1.0/users/me/followings/:groupId', () => {
+			it('should unfollow group', (done) => {
+				request(app)
+				.delete(`/v0.1.0/users/me/followings/${group._id}`)
+				.set('Authorization', `Bearer ${credential2.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					should.exist(res.body.unfollowedGroup);
+					expect(res.body.unfollowedGroup).to.equal(group._id);
 					done();
 				});
 			});
