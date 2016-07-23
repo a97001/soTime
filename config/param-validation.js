@@ -195,6 +195,20 @@ module.exports = {
 			},
 			isPublic: Joi.boolean().required()
 		}
+	},
+
+	// GET /events
+	showEvents: {
+		options: {
+			allowUnknownParams: false,
+		},
+		query: {
+			from: Joi.date().iso().required(),
+			to: Joi.date().iso().required(),
+			type: Joi.string(),
+			title: Joi.string(),
+			skip: Joi.number()
+		}
 	}
 
 	// // UPDATE /api/users/:userId

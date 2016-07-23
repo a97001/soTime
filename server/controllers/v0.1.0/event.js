@@ -38,13 +38,27 @@ module.exports = {
 	},
 
 	/**
-	 * User logout
+	 * Show events
 	 */
-	logout(req, res, next) {
+	showEvents(req, res, next) {
 		co(function* () {
-			yield RefreshToken.remove({ _id: req.body.clientId, userId: req.me._id }).exec();
-			req.logout();
-			res.status(204).end();
+			const skip = req.query.skip ? req.query.skip : 0;
+			const me = yield User.findOne({ _id: req.me._id }).lean().exec();
+			const query = { startTime: { $lte: req.query.to, $gte: req.query.from }, $or: [
+				{ user_id: req.me._id },
+				{ group_id: { $in: me.groups_id } },
+				{ group_id: { $in: me.groups_id }, isPublic: true },
+				{ isPublic: true }
+			] };
+
+			if (req.query.title) {
+				query.title = { $regex: req.query.title, $options: 'i' };
+			}
+			if (req.query.type) {
+				query.type = req.query.type;
+			}
+			const	events = yield Event.find(query).sort({ from: -1 }).skip(skip).limit(10).lean().exec();
+			return res.json(events);
 		}).catch((err) => {
 			next(err);
 		});

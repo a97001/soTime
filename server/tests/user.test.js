@@ -647,6 +647,24 @@ describe('## User APIs', () => {
 			});
 		});
 
+		describe('# GET /v0.1.0/events', () => {
+			it('should search or show events', (done) => {
+				request(app)
+				.get('/v0.1.0/events')
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.query({
+					title: 'gay',
+					from: new Date(99, 5, 24),
+					to: new Date()
+				})
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
 		describe('# DELETE /v0.1.0/groups/:groupId/events/:eventId', () => {
 			it('should delete group event', (done) => {
 				request(app)
