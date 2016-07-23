@@ -275,10 +275,26 @@ describe('## User APIs', () => {
 		});
 
 		describe('# GET /v0.1.0/users/me/groups', () => {
-			it('should get groups of users', (done) => {
+			it('should get groups of user', (done) => {
 				request(app)
 				.get('/v0.1.0/users/me/groups')
 				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.expect(httpStatus.OK)
+				.then(res => {
+					expect(res.body).to.have.length.above(0);
+					done();
+				});
+			});
+		});
+
+		describe('# GET /v0.1.0/groups', () => {
+			it('should search groups', (done) => {
+				request(app)
+				.get('/v0.1.0/groups')
+				.set('Authorization', `Bearer ${credential.accessToken}`)
+				.query({
+					query: 'gay'
+				})
 				.expect(httpStatus.OK)
 				.then(res => {
 					expect(res.body).to.have.length.above(0);

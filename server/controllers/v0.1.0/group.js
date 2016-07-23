@@ -46,6 +46,19 @@ module.exports = {
     });
   },
 
+  /**
+   * Search groups
+   */
+  searchGroups(req, res, next) {
+    co(function* () {
+      const me = User.findOne({ _id: req.me._id }, 'groups_id').lean().exec();
+      const groups = yield Group.find({ name: { $regex: req.query.query, $options: 'i' }, $or: [{ _id: { $in: me.groups_id } }, { isPublic: true }] }, 'name icon').sort({ name: 1 }).limit(10).lean().exec();
+      return res.json(groups);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
 	/**
 	 * Get group
 	 */

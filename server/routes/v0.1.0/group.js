@@ -10,6 +10,25 @@ const router = express.Router();	// eslint-disable-line new-cap
 
 router.route('/')
 /**
+* @api {get} /groups Search groups
+* @apiVersion 0.1.0
+* @apiGroup Groups
+* @apiParam {String} query Part of name
+* @apiParamExample {json} Input
+*    {
+*      "query": "gay"
+*    }
+* @apiSuccessExample {json} Success
+*    {
+*      "_id": ObjectId,
+*      "name": "fishGay",
+*      "icon": ObjectId
+*    }
+*/
+
+	.get(groupCtrl.searchGroups)
+
+/**
 * @api {post} /groups Create group
 * @apiVersion 0.1.0
 * @apiGroup Groups
