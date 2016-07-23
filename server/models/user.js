@@ -195,6 +195,8 @@ const UserSchema = new Schema({
      const obj = this.toObject();
      delete obj.hashed_password;
      delete obj.salt;
+     delete obj.resetPasswordToken;
+     delete obj.resetPasswordExpires;
      return obj;
    }
  };

@@ -1,3 +1,6 @@
+const cluster = require('cluster');
+const os = require('os');
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 const Promise = require('bluebird');
 const mongoose = require('mongoose');
 const config = require('./config/env');
@@ -8,30 +11,56 @@ const socketioJwt = require('socketio-jwt');
 const mongoAdapter = require('socket.io-adapter-mongo');
 const ioHandler = require('./server/socket.io');
 
-const server = http.createServer(app);
-const io = socketio(server);
-console.log(config.db);
-io.adapter(mongoAdapter(config.db));
-io.use(socketioJwt.authorize({
-  secret: config.secret,
-  handshake: true
-}));
-ioHandler(io);
+if (process.env.NODE_ENV === 'test') {
+  init();
+} else {
+  if (cluster.isMaster) {
+    const numWorkers = os.cpus().length;
 
-// promisify mongoose
-// Promise.promisifyAll(mongoose);
+    console.log(`Master cluster setting up ${numWorkers} workers... `);
 
-// connect to mongo db
-mongoose.connect(config.db, { server: { socketOptions: { keepAlive: 1 } } });
-mongoose.connection.on('error', () => {
-	throw new Error(`unable to connect to database: ${config.db}`);
-});
+    for (let i = 0; i < numWorkers; i++) {
+      cluster.fork();
+    }
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+    cluster.on('online', (worker) => {
+      console.log(`Worker ${worker.process.pid} is online`);
+    });
 
-// listen on port config.port
-server.listen(config.port, () => {
-	debug(`server started on port ${config.port} (${config.env})`);
-});
+    cluster.on('exit', (worker, code, signal) => {
+      console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
+      console.log('Starting a new worker');
+      cluster.fork();
+    });
+  } else {
+    init();
+  }
+}
 
-module.exports = app;
+function init() {
+  const server = http.createServer(app);
+  const io = socketio(server);
+  console.log(config.db);
+  io.adapter(mongoAdapter(config.db));
+  io.use(socketioJwt.authorize({
+    secret: config.secret,
+    handshake: true
+  }));
+  ioHandler(io);
+
+  // promisify mongoose
+  // Promise.promisifyAll(mongoose);
+
+  // connect to mongo db
+  mongoose.connect(config.db, { server: { socketOptions: { keepAlive: 1 } } });
+  mongoose.connection.on('error', () => {
+    throw new Error(`unable to connect to database: ${config.db}`);
+  });
+
+  // listen on port config.port
+  server.listen(config.port, () => {
+    debug(`server started on port ${config.port} (${config.env})`);
+  });
+
+  module.exports = app;
+}
