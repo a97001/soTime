@@ -457,6 +457,19 @@ describe('## v0.1.0 APIs', () => {
 			});
 		});
 
+    describe('# GET /v0.1.0/groups/:groupId/members', () => {
+      it('should get group members', (done) => {
+        request(app)
+        .get(`/v0.1.0/groups/${group._id}/members`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body).to.have.length.above(0);
+          done();
+        });
+      });
+    });
+
 		describe('# POST /v0.1.0/users/me/followings/:groupId', () => {
 			it('should follow group', (done) => {
 				request(app)
@@ -469,6 +482,19 @@ describe('## v0.1.0 APIs', () => {
 				});
 			});
 		});
+
+    describe('# GET /v0.1.0/groups/:groupId/followers', () => {
+      it('should get group followers', (done) => {
+        request(app)
+        .get(`/v0.1.0/groups/${group._id}/followers`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body).to.have.length.above(0);
+          done();
+        });
+      });
+    });
 
 		describe('# DELETE /v0.1.0/users/me/followings/:groupId', () => {
 			it('should unfollow group', (done) => {

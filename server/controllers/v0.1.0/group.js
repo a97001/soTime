@@ -387,5 +387,35 @@ module.exports = {
     }).catch((err) => {
       next(err);
     });
+  },
+
+  /**
+   * Show group members
+   */
+  showGroupMembers(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const users = yield User.find({ groups_id: req.group._id }, '_id username email').sort({ username: 1 }).lean().exec();
+      return res.json(users);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show group followers
+   */
+  showGroupFollowers(req, res, next) {
+    co(function* () {
+      // if (req.groupPrivilege !== 'm') {
+      //   return res.status(403).end();
+      // }
+      const users = yield User.find({ follows_id: req.group._id }, '_id username email').sort({ username: 1 }).lean().exec();
+      return res.json(users);
+    }).catch((err) => {
+      next(err);
+    });
   }
 };

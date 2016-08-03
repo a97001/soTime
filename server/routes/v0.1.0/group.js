@@ -356,6 +356,22 @@ router.route('/:groupId/events/:group_eventId/banners/:bannerId')
 */
 	.get(groupCtrl.showGroupEventBanner);
 
+router.route('/:groupId/members')
+/**
+* @api {get} /:groupId/members Show group members
+* @apiVersion 0.1.0
+* @apiGroup Groups
+*/
+	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroupMembers);
+
+router.route('/:groupId/followers')
+/**
+* @api {get} /:groupId/followers Show group followers
+* @apiVersion 0.1.0
+* @apiGroup Groups
+*/
+	.get(groupCtrl.showGroupFollowers);
+
 router.param('groupId', groupCtrl.load);
 router.param('group_eventId', groupCtrl.loadGroupEvent);
 
