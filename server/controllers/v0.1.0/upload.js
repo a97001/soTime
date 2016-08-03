@@ -35,7 +35,7 @@ module.exports = {
  */
   getDoc(req, res) {
     const options = {
-      root: `/uploaded/files/${req.user.email}/`,
+      root: `/uploaded/files/${req.me.email}/`,
       dotfiles: 'deny'
     };
     res.sendFile(req.filename, options, (err) => {
@@ -51,7 +51,7 @@ module.exports = {
    */
   getDocThumbnail(req, res) {
     const options = {
-      root: `/uploaded/files/${req.user.email}/thumbnail/`,
+      root: `/uploaded/files/${req.me.email}/thumbnail/`,
       dotfiles: 'deny'
     };
     res.sendFile(req.filename, options, (err) => {
@@ -66,8 +66,8 @@ module.exports = {
  * get upload document
  */
   getUploadDocument(req, res) {
-    uploaderOptions.tmpDir = `/uploaded/tmp/${req.user.email}`;
-    uploaderOptions.uploadDir = `/uploaded/files/${req.user.email}`;
+    uploaderOptions.tmpDir = `/uploaded/tmp/${req.me.email}`;
+    uploaderOptions.uploadDir = `/uploaded/files/${req.me.email}`;
     const uploader = blueimpUploader(uploaderOptions);
     uploader.get(req, res, (obj) => {
       res.send(JSON.stringify(obj));
@@ -78,8 +78,8 @@ module.exports = {
    * post upload document
    */
   postUploadDocument(req, res) {
-    uploaderOptions.tmpDir = `/uploaded/tmp/${req.user.email}`;
-    uploaderOptions.uploadDir = `/uploaded/files/${req.user.email}`;
+    uploaderOptions.tmpDir = `/uploaded/tmp/${req.me.email}`;
+    uploaderOptions.uploadDir = `/uploaded/files/${req.me.email}`;
     const uploader = blueimpUploader(uploaderOptions);
     uploader.post(req, res, (obj) => {
       res.send(JSON.stringify(obj));
@@ -90,8 +90,8 @@ module.exports = {
    * delete upload document
    */
   deleteUploadDocument(req, res) {
-    uploaderOptions.tmpDir = `/uploaded/tmp/${req.user.email}`;
-    uploaderOptions.uploadDir = `/uploaded/files/${req.user.email}`;
+    uploaderOptions.tmpDir = `/uploaded/tmp/${req.me.email}`;
+    uploaderOptions.uploadDir = `/uploaded/files/${req.me.email}`;
     const uploader = blueimpUploader(uploaderOptions);
     uploader.delete(req, res, (obj) => {
       res.send(JSON.stringify(obj));
