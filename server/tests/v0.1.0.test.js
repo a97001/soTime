@@ -2,6 +2,7 @@ import request from 'supertest-as-promised';
 import httpStatus from 'http-status';
 import chai from 'chai';
 import app from '../../index';
+import ioClient from 'socket.io-client';
 const co = require('co');
 const jwt = require('jsonwebtoken');
 
@@ -9,13 +10,18 @@ chai.config.includeStack = true;
 
 const expect = chai.expect;
 const should = chai.should();
+const socketURL = 'http://localhost:3000/v0.1.0';
+const socketOptions = {
+  transports: ['websocket'],
+  'force new connection': true
+};
 
 const RefreshToken = require('../models/refreshToken');
 const User = require('../models/user');
 const Event = require('../models/event');
 const Group = require('../models/group');
 
-describe('## User APIs', () => {
+describe('## v0.1.0 APIs', () => {
 	const me = {
 		username: 'fishGay',
 		email: 'fishgay@gmail.com',
@@ -38,6 +44,7 @@ describe('## User APIs', () => {
 	let credential1 = null;
 	let credential2 = null;
 	let event = null;
+  let groupEvent = null;
 	let group = null;
 
 	describe('## Users', () => {
@@ -577,7 +584,7 @@ describe('## User APIs', () => {
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.send({
 					title: 'fishGay is gay',
-					description: 'fishGay is very gay',
+					description: 'fishGay is gay',
 					type: 'gay',
 					startTime: new Date(),
 					allDay: false,
@@ -594,7 +601,7 @@ describe('## User APIs', () => {
 				.expect(httpStatus.CREATED)
 				.then(res => {
 					should.exist(res.body._id);
-					event = res.body;
+					groupEvent = res.body;
 					done();
 				});
 			});
@@ -620,7 +627,7 @@ describe('## User APIs', () => {
 		describe('# PUT /v0.1.0/groups/:groupId/events/:eventId', () => {
 			it('should update group event', (done) => {
 				request(app)
-				.put(`/v0.1.0/groups/${group._id}/events/${event._id}`)
+				.put(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}`)
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.send({
 					title: 'fishGay is very gay',
@@ -668,14 +675,29 @@ describe('## User APIs', () => {
 		describe('# DELETE /v0.1.0/groups/:groupId/events/:eventId', () => {
 			it('should delete group event', (done) => {
 				request(app)
-				.delete(`/v0.1.0/groups/${group._id}/events/${event._id}`)
+				.delete(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}`)
 				.set('Authorization', `Bearer ${credential.accessToken}`)
 				.expect(httpStatus.OK)
 				.then(res => {
 					should.exist(res.body._id);
-					expect(res.body._id).to.equal(event._id);
+					expect(res.body._id).to.equal(groupEvent._id);
 					done();
 				});
+			});
+		});
+	});
+
+	describe('## Chatting APIs', () => {
+		describe('# connection and authentication', () => {
+			it('should connect to socket.io server', (done) => {
+				socketOptions.query = `token=${credential.accessToken}`;
+				const client = ioClient.connect(socketURL, socketOptions);
+				// socketOptions.query = `token=${credential1.accessToken}`;
+				// const client1 = ioClient.connect(socketURL, socketOptions);
+				client.on('connect', (data) => {
+					done();
+				});
+				// done();
 			});
 		});
 	});

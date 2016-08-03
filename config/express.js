@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const compress = require('compression');
 const methodOverride = require('method-override');
+const helmet = require('helmet');
 const cors = require('cors');
 const httpStatus = require('http-status');
 const expressWinston = require('express-winston');
@@ -30,8 +31,8 @@ app.use(cookieParser());
 app.use(compress());
 app.use(methodOverride());
 
-// disable 'X-Powered-By' header in response
-app.disable('x-powered-by');
+// secure apps by setting various HTTP headers
+app.use(helmet());
 
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());

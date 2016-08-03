@@ -186,7 +186,7 @@ module.exports = {
 	 */
 	logout(req, res, next) {
 		co(function* () {
-			yield RefreshToken.remove({ _id: req.body.clientId, userId: req.me._id }).exec();
+			yield RefreshToken.remove({ _id: req.body.clientId, user_id: req.me._id }).exec();
 			req.logout();
 			res.status(204).end();
 		}).catch((err) => {
@@ -347,26 +347,12 @@ module.exports = {
       if (req.event.user_id.toString() !== req.me._id.toString()) {
         return res.status(403).end();
       }
-
-      let newEvent = req.body;
-      newEvent.user_id = req.me._id;
-      newEvent.group_id = null;
-      newEvent.friendship_id = null;
-      newEvent.participants_id = [];
-      newEvent.participantCounter = 0;
-      newEvent.goings_id = [];
-      newEvent.goingCounter = 0;
-      newEvent.notGoings_id = [];
-      newEvent.notGoingCounter = 0;
-      newEvent.votes = [];
-      newEvent.totalVoteCounter = 0;
-      newEvent.voteStart = null;
-      newEvent.voteEnd = null;
-      newEvent.banner = null;
-      newEvent.photos_id = [];
-      newEvent = new Event(newEvent);
-      yield newEvent.save();
-      return res.json(newEvent);
+      const updates = Object.keys(req.body);
+			for (let i = 0; i < updates.length; i++) {
+				req.event[updates[i]] = req.body[updates[i]];
+			}
+      yield req.event.save();
+      return res.json(req.event);
     }).catch((err) => {
       next(err);
     });

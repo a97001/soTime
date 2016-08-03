@@ -315,25 +315,12 @@ module.exports = {
       if (req.groupPrivilege !== 'm') {
         return res.status(403).end();
       }
-      let newEvent = req.body;
-      newEvent.user_id = req.event.user_id;
-      newEvent.group_id = req.event.group_id;
-      newEvent.friendship_id = null;
-      newEvent.participants_id = req.event.participants_id;
-      newEvent.participantCounter = req.event.participantCounter;
-      newEvent.goings_id = req.event.goings_id;
-      newEvent.goingCounter = req.event.goingCounter;
-      newEvent.notGoings_id = req.event.notGoings_id;
-      newEvent.notGoingCounter = req.event.notGoingCounter;
-      newEvent.votes = req.event.votes;
-      newEvent.totalVoteCounter = req.event.totalVoteCounter;
-      newEvent.voteStart = req.event.voteStart;
-      newEvent.voteEnd = req.event.voteEnd;
-      newEvent.banner = req.event.banner;
-      newEvent.photos_id = req.event.photos_id;
-      newEvent = new Event(newEvent);
-      yield newEvent.save();
-      return res.json(newEvent);
+      const updates = Object.keys(req.body);
+			for (let i = 0; i < updates.length; i++) {
+				req.event[updates[i]] = req.body[updates[i]];
+			}
+      yield req.event.save();
+      return res.json(req.event);
     }).catch((err) => {
       next(err);
     });
