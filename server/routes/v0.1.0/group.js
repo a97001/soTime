@@ -329,6 +329,33 @@ router.route('/:groupId/events/:group_eventId')
 */
 	.delete(routeChecker.checkGroupPrivilege, groupCtrl.deleteGroupEvent);
 
+router.route('/:groupId/events/:group_eventId/banners')
+/**
+* @api {put} /:groupId/events/:group_eventId/banners Update group event banner
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiParam {String[]} uploadedDocs Uploaded Icon
+* @apiParamExample {json} Input
+*    {
+*      "uploadedDocs": Array
+*    }
+* @apiSuccessExample {json} Success
+*    {
+*      "banner": ObjectId
+*    }
+*/
+	.put(routeChecker.checkGroupPrivilege, groupCtrl.updateGroupEventBanner);
+
+router.route('/:groupId/events/:group_eventId/banners/:bannerId')
+/**
+* @api {get} /:groupId/events/:group_eventId/banners/:bannerId Show group event banner
+* @apiVersion 0.1.0
+* @apiGroup Events
+* @apiSuccessExample {json} Success
+*			image file
+*/
+	.get(groupCtrl.showGroupEventBanner);
+
 router.param('groupId', groupCtrl.load);
 router.param('group_eventId', groupCtrl.loadGroupEvent);
 

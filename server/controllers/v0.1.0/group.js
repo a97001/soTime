@@ -339,6 +339,53 @@ module.exports = {
     }).catch((err) => {
       next(err);
     });
-  }
+  },
 
+  /**
+   * Show group event banner
+   */
+  showGroupEventBanner(req, res, next) {
+    co(function* () {
+      const fsFile = yield FsFile.findOne({ _id: req.event.banner, 'metadata.type': 'icon' }).lean().exec();
+      if (fsFile) {
+        res.writeHead(200, {
+          'Content-Length': fsFile.length,
+          'content-Type': fsFile.contentType
+        });
+        gfs.createReadStream({
+          _id: fsFile._id
+        }).pipe(res);
+      } else {
+        res.status(404).end();
+      }
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Update group event banner
+   */
+  updateGroupEventBanner(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      const me = new User(req.me);
+      const body = req.body;
+      const files = body.uploadedDocs;
+      imageUploader(me, files[0], req.event, 'icon', res, (fsFile) => {
+        Event.update({ _id: req.event._id }, { $set: { banner: fsFile._id } }, (err) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).end();
+          }
+          return res.status(201).json({ banner: fsFile._id });
+        });
+      });
+      return 0;
+    }).catch((err) => {
+      next(err);
+    });
+  }
 };

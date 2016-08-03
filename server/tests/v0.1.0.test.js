@@ -654,6 +654,33 @@ describe('## v0.1.0 APIs', () => {
 			});
 		});
 
+    describe('# PUT /v0.1.0/groups/:groupId/events/:eventId/banners', () => {
+      it('should update group event banner', (done) => {
+        request(app)
+        .put(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/banners`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .send({ uploadedDocs: [{ name: 'icon1.jpg', type: 'jpg' }] })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          should.exist(res.body.banner);
+          groupEvent.banner = res.body.banner;
+          done();
+        });
+      });
+    });
+
+    describe('# GET /v0.1.0/groups/:groupId/events/:eventId/banners/:bannerId', () => {
+      it('should get group event banner', (done) => {
+        request(app)
+        .get(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/banners/:bannerId`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          done();
+        });
+      });
+    });
+
 		describe('# GET /v0.1.0/events', () => {
 			it('should search or show events', (done) => {
 				request(app)
