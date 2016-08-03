@@ -203,8 +203,8 @@ module.exports = {
 			allowUnknownParams: false,
 		},
 		query: {
-			from: Joi.date().iso().required(),
-			to: Joi.date().iso().required(),
+			from: Joi.date().required(),
+			to: Joi.date().required(),
 			type: Joi.string(),
 			title: Joi.string(),
 			skip: Joi.number()
