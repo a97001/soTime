@@ -55,6 +55,7 @@
     "gridfs-stream": "^1.1.1",
     "gulp": "^3.9.1",
     "gulp-eslint": "^2.0.0",
+    "helmet": "^2.1.2",
     "http-status": "^0.2.0",
     "joi": "^7.2.3",
     "joi-objectid": "^2.0.0",
