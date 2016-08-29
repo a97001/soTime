@@ -9,6 +9,7 @@ const User = require('../../models/user');
 const FsFile = require('../../models/fsfile');
 const Event = require('../../models/event');
 const Group = require('../../models/group');
+const Vote = require('../../models/vote');
 
 Grid.mongo = mongoose.mongo;
 let gfs = null;
@@ -384,6 +385,130 @@ module.exports = {
         });
       });
       return 0;
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Create group event vote
+   */
+  createGroupEventVote(req, res, next) {
+    co(function* () {
+      if (req.groupPrivilege !== 'm') {
+        return res.status(403).end();
+      }
+      req.body.creator_id = req.me._id;
+      req.body.event_id = req.event._id;
+      if (!req.event.isPublic) {
+        req.body.isPublic = false;
+      }
+      const newVote = new Vote(req.body);
+      const result = yield Vote.update({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }, { $setOnInsert: newVote }, { upsert: true }).exec();
+      if (result.upserted && result.upserted.length === 1) {
+        return res.status(201).json(newVote);
+      }
+      return res.status(400).json({ err: 'There is another voting now' });
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show group event votes
+   */
+  showGroupEventVotes(req, res, next) {
+    co(function* () {
+      let votes = [];
+      if (req.groupPrivilege === 'm') {
+        votes = yield Vote.find({ event_id: req.event._id }, '-dateOptions.voters_id').populate('creator_id', 'username').sort({ startDate: 1 }).lean().exec();
+      } else if (req.groupPrivilege === 'f') {
+        votes = yield Vote.find({ event_id: req.event._id, isPublic: true }, '-dateOptions.voters_id').populate('creator_id', 'username').sort({ startDate: 1 }).lean().exec();
+      } else {
+        return res.status(403).end();
+      }
+      return res.json(votes);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Show group event votes
+   */
+  showGroupEventCurrentVote(req, res, next) {
+    co(function* () {
+      let vote = null;
+      if (req.groupPrivilege === 'm') {
+        vote = yield Vote.findOne({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }, 'isPublic isAnonymous').exec();
+      } else if (req.groupPrivilege === 'f') {
+        vote = yield Vote.findOne({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() }, isPublic: true }, 'isPublic isAnonymous').exec();
+      } else {
+        return res.status(403).end();
+      }
+      if (!vote) {
+        return res.status(404).end();
+      }
+      if (vote.isAnonymous) {
+        vote = yield Vote.findOne({ _id: vote._id }, '-dateOptions.voters_id').populate('creator_id', 'username').lean().exec();
+      } else {
+        vote = yield Vote.findOne({ _id: vote._id }).populate('creator_id', 'username').lean().exec();
+      }
+      return res.json(vote);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Update group event current vote response
+   */
+  updateGroupEventCurrentVoteResponse(req, res, next) {
+    co(function* () {
+      let result = null;
+      let vote = null;
+      if (req.groupPrivilege === 'm') {
+        vote = yield Vote.findOne({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }, 'isPublic isAnonymous').exec();
+      } else if (req.groupPrivilege === 'f') {
+        vote = yield Vote.findOne({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() }, isPublic: true }, 'isPublic isAnonymous').exec();
+      } else {
+        return res.status(403).end();
+      }
+      if (!vote) {
+        return res.status(404).end();
+      }
+      result = yield Vote.update({ _id: vote._id, 'dateOptions.voters_id': req.me._id, 'dateOptions._id': req.body.option }, { $pull: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': -1 } }).exec();
+      if (result.nModified !== 1) {
+        result = yield Vote.update({ _id: vote._id, 'dateOptions.voters_id': { $ne: req.me._id }, 'dateOptions._id': req.body.option }, { $addToSet: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': 1 } }).exec();
+        if (result.nModified !== 1) {
+          return res.status(400).json({ err: 'Option may not exists' });
+        }
+      }
+      if (vote.isAnonymous) {
+        vote = yield Vote.findOne({ _id: vote._id }, '-dateOptions.voters_id').populate('creator_id', 'username').lean().exec();
+      } else {
+        vote = yield Vote.findOne({ _id: vote._id }).populate('creator_id', 'username').lean().exec();
+      }
+      return res.json(vote);
+    }).catch((err) => {
+      next(err);
+    });
+  },
+
+  /**
+   * Delete group event current vote
+   */
+  deleteGroupEventCurrentVote(req, res, next) {
+    co(function* () {
+      const vote = yield Vote.findOne({ event_id: req.event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }, 'creator_id isPublic isAnonymous').exec();
+      if (!vote) {
+        return res.status(404).end();
+      }
+      if (vote.creator_id.toString() === req.me._id.toString() || req.group.host_id.toString() === req.me._id.toString()) {
+        yield Vote.remove({ _id: vote._id }).exec();
+        return res.json({ deletedVote: vote._id });
+      }
+      return res.status(403).end();
     }).catch((err) => {
       next(err);
     });

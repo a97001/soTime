@@ -1,7 +1,7 @@
 const cluster = require('cluster');
 const os = require('os');
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
-const Promise = require('bluebird');
+// const Promise = require('bluebird');
 const mongoose = require('mongoose');
 const config = require('./config/env');
 const http = require('http');
@@ -11,9 +11,7 @@ const socketioJwt = require('socketio-jwt');
 const mongoAdapter = require('socket.io-adapter-mongo');
 const ioHandler = require('./server/socket.io');
 
-if (process.env.NODE_ENV === 'test') {
-  init();
-} else {
+if (process.env.NODE_ENV === 'production') {
   if (cluster.isMaster) {
     const numWorkers = os.cpus().length;
 
@@ -35,6 +33,8 @@ if (process.env.NODE_ENV === 'test') {
   } else {
     init();
   }
+} else {
+  init();
 }
 
 function init() {

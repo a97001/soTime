@@ -3,6 +3,16 @@ const joiObjectid = require('joi-objectid');
 
 Joi.objectId = joiObjectid(Joi);
 
+const voteSchema = {
+	options: {
+		allowUnknownParams: false,
+	},
+	body: {
+		startDate: Joi.date().iso().required(),
+		endDate: Joi.date().min(Joi.ref('startDate')).iso().required()
+	}
+};
+
 module.exports = {
 	// POST /users
 	createUser: {
@@ -194,6 +204,31 @@ module.exports = {
 				name: Joi.string()
 			},
 			isPublic: Joi.boolean().required()
+		}
+	},
+
+	// POST /groups/:groupId/events/:eventId/votes
+	createGroupEventVote: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			description: Joi.string().required(),
+			dateOptions: Joi.array().items(Joi.compile(voteSchema).required()).required(),
+			startDate: Joi.date().iso().required(),
+			endDate: Joi.date().min(Joi.ref('startDate')).iso().required(),
+			isAnonymous: Joi.boolean().required(),
+			isPublic: Joi.boolean().required()
+		}
+	},
+
+	// PUT /groups/:groupId/events/:eventId/votes/current/response
+	updateGroupEventCurrentVoteResponse: {
+		options: {
+			allowUnknownParams: false,
+		},
+		body: {
+			option: Joi.objectId().required()
 		}
 	},
 

@@ -356,6 +356,120 @@ router.route('/:groupId/events/:group_eventId/banners/:bannerId')
 */
 	.get(groupCtrl.showGroupEventBanner);
 
+router.route('/:groupId/events/:group_eventId/votes')
+/**
+* @api {post} /:groupId/events/:group_eventId/votes Create group event vote
+* @apiVersion 0.1.0
+* @apiGroup Votes
+* @apiParam {String} description Vote Description
+* @apiParam {Object[]} dateOptions Date options
+* @apiParam {Date} dateOptions.startDate Start Date Options
+* @apiParam {Date} dateOptions.endDate End Date Options
+* @apiParam {Date} startDate Vote start
+* @apiParam {Date} endDate Vote end
+* @apiParam {Boolean} [isPublic] Is vote public
+* @apiParam {Boolean} [isAnonymous] Is vote anonymous
+* @apiSuccessExample {json} Success
+*    {
+*      description: 'gay',
+*      creator_id: 57c44f5d3f4d969410694dc8,
+*      event_id: 57c44f6f3f4d969410694dd5,
+*      _id: 57c44f743f4d969410694dd8,
+*      isAnonymous: false,
+*      isPublic: false,
+*      dateOptions:
+*      [{ startDate: 1999-06-23T16:00:00.000Z,
+*         endDate: 2016-08-29T15:06:28.227Z,
+*         _id: 57c44f743f4d969410694dd9,
+*         count: 0,
+*         voters_id: []
+*    	}]
+*    }
+*/
+	.post(validate(paramValidation.createGroupEventVote), routeChecker.checkGroupPrivilege, groupCtrl.createGroupEventVote)
+
+/**
+* @api {get} /:groupId/events/:group_eventId/votes Show group event votes
+* @apiVersion 0.1.0
+* @apiGroup Votes
+* @apiSuccessExample {json} Success
+*    [{
+*      description: 'gay',
+*      creator_id: 57c44f5d3f4d969410694dc8,
+*      event_id: 57c44f6f3f4d969410694dd5,
+*      _id: 57c44f743f4d969410694dd8,
+*      isAnonymous: false,
+*      isPublic: false,
+*      dateOptions:
+*      [{ startDate: 1999-06-23T16:00:00.000Z,
+*         endDate: 2016-08-29T15:06:28.227Z,
+*         _id: 57c44f743f4d969410694dd9,
+*         count: 0
+*    	}]
+*    }]
+*/
+	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroupEventVotes);
+
+router.route('/:groupId/events/:group_eventId/votes/current')
+/**
+* @api {get} /:groupId/events/:group_eventId/votes/current Show group event current vote
+* @apiVersion 0.1.0
+* @apiGroup Votes
+* @apiSuccessExample {json} Success
+*    {
+*      description: 'gay',
+*      creator_id: 57c44f5d3f4d969410694dc8,
+*      event_id: 57c44f6f3f4d969410694dd5,
+*      _id: 57c44f743f4d969410694dd8,
+*      isAnonymous: false,
+*      isPublic: false,
+*      dateOptions:
+*      [{ startDate: 1999-06-23T16:00:00.000Z,
+*         endDate: 2016-08-29T15:06:28.227Z,
+*         _id: 57c44f743f4d969410694dd9,
+*         count: 0,
+*         voters_id: []
+*    	}]
+*    }
+*/
+	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroupEventCurrentVote)
+
+/**
+* @api {delete} /:groupId/events/:group_eventId/votes/current Delete group event current vote
+* @apiVersion 0.1.0
+* @apiGroup Votes
+* @apiSuccessExample {json} Success
+*    {
+*      deletedVote: ObjectId,
+*    }
+*/
+	.delete(routeChecker.checkGroupPrivilege, groupCtrl.deleteGroupEventCurrentVote);
+
+router.route('/:groupId/events/:group_eventId/votes/current/response')
+/**
+* @api {put} /:groupId/events/:group_eventId/votes/current/response Update group event current vote response
+* @apiVersion 0.1.0
+* @apiGroup Votes
+* @apiParam {ObjectId} option Date option _id
+* @apiSuccessExample {json} Success
+*    {
+*      description: 'gay',
+*      creator_id: 57c44f5d3f4d969410694dc8,
+*      event_id: 57c44f6f3f4d969410694dd5,
+*      _id: 57c44f743f4d969410694dd8,
+*      isAnonymous: false,
+*      isPublic: false,
+*      dateOptions:
+*      [{ startDate: 1999-06-23T16:00:00.000Z,
+*         endDate: 2016-08-29T15:06:28.227Z,
+*         _id: 57c44f743f4d969410694dd9,
+*         count: 1,
+*         voters_id: [{ _id: ObjectId, username: 'fishGay' }]
+*    	}]
+*    }
+*/
+	.put(validate(paramValidation.updateGroupEventCurrentVoteResponse), routeChecker.checkGroupPrivilege, groupCtrl.updateGroupEventCurrentVoteResponse);
+
 router.route('/:groupId/members')
 /**
 * @api {get} /:groupId/members Show group members

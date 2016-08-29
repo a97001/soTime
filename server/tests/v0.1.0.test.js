@@ -20,6 +20,7 @@ const RefreshToken = require('../models/refreshToken');
 const User = require('../models/user');
 const Event = require('../models/event');
 const Group = require('../models/group');
+const Vote = require('../models/vote');
 
 describe('## v0.1.0 APIs', () => {
 	const me = {
@@ -46,6 +47,7 @@ describe('## v0.1.0 APIs', () => {
 	let event = null;
   let groupEvent = null;
 	let group = null;
+  let vote = null;
 
 	describe('## Users', () => {
 		describe('# POST /v0.1.0/users', () => {
@@ -707,6 +709,77 @@ describe('## v0.1.0 APIs', () => {
       });
     });
 
+    describe('# POST /v0.1.0/groups/:groupId/events/:eventId/votes', () => {
+      it('should create group event vote', (done) => {
+        request(app)
+        .post(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .send({ description: 'gay', startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400), dateOptions: [{ startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }], isAnonymous: false, isPublic: false })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          should.exist(res.body._id);
+          vote = res.body;
+          done();
+        });
+      });
+    });
+
+    describe('# GET /v0.1.0/groups/:groupId/events/:eventId/votes', () => {
+      it('should show group event votes', (done) => {
+        request(app)
+        .get(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+					expect(res.body).to.have.length.above(0);
+          done();
+        });
+      });
+    });
+
+    describe('# GET /v0.1.0/groups/:groupId/events/:eventId/votes/current', () => {
+      it('should show group event current vote', (done) => {
+        request(app)
+        .get(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes/current`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          should.exist(res.body._id);
+          done();
+        });
+      });
+    });
+
+    describe('# PUT /v0.1.0/groups/:groupId/events/:eventId/votes/current/response', () => {
+      it('should update group event current vote response', (done) => {
+        request(app)
+        .put(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes/current/response`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .send({ option: vote.dateOptions[0]._id })
+        .expect(httpStatus.OK)
+        .then(res => {
+          should.exist(res.body._id);
+          expect(res.body.dateOptions[0].count).to.equal(1);
+          vote = res.body;
+          done();
+        });
+      });
+    });
+
+    describe('# DELETE /v0.1.0/groups/:groupId/events/:eventId/votes/current', () => {
+      it('should delete group event current vote', (done) => {
+        request(app)
+        .delete(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes/current`)
+        .set('Authorization', `Bearer ${credential.accessToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          should.exist(res.body.deletedVote);
+          expect(res.body.deletedVote).to.equal(vote._id);
+          done();
+        });
+      });
+    });
+
 		describe('# GET /v0.1.0/events', () => {
 			it('should search or show events', (done) => {
 				request(app)
@@ -779,6 +852,8 @@ describe('## v0.1.0 APIs', () => {
 		Event.remove({}, (err) => {
 		});
 		Group.remove({}, (err) => {
+		});
+    Vote.remove({}, (err) => {
 		});
 	});
 });
