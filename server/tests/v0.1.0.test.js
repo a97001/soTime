@@ -21,8 +21,24 @@ const User = require('../models/user');
 const Event = require('../models/event');
 const Group = require('../models/group');
 const Vote = require('../models/vote');
+const Message = require('../models/message');
 
 describe('## v0.1.0 APIs', () => {
+  before(() => {
+    RefreshToken.remove({}, (err) => {
+    });
+    User.remove({}, (err) => {
+    });
+    Event.remove({}, (err) => {
+    });
+    Group.remove({}, (err) => {
+    });
+    Vote.remove({}, (err) => {
+    });
+    Message.remove({}, (err) => {
+    });
+  });
+
 	const me = {
 		username: 'fishGay',
 		email: 'fishgay@gmail.com',
@@ -818,15 +834,74 @@ describe('## v0.1.0 APIs', () => {
 			it('should connect to socket.io server', (done) => {
 				socketOptions.query = `token=${credential.accessToken}`;
 				const client = ioClient.connect(socketURL, socketOptions);
-				// socketOptions.query = `token=${credential1.accessToken}`;
-				// const client1 = ioClient.connect(socketURL, socketOptions);
 				client.on('connect', (data) => {
 					done();
 				});
 				// done();
 			});
 		});
-	});
+
+    describe('# message:sendMsg message:receiveMsg', () => {
+      it('should send and receive chat', (done) => {
+        const sOption = { transports: ['websocket'], 'force new connection': true };
+        sOption.query = `token=${credential.accessToken}`;
+        const client = ioClient.connect(socketURL, sOption);
+        client.on('message:receiveMsg', (msg) => {
+          should.exist(msg._id);
+          done();
+        });
+
+        const sOption1 = { transports: ['websocket'], 'force new connection': true };
+        sOption1.query = `token=${credential1.accessToken}`;
+        const client1 = ioClient.connect(socketURL, sOption1);
+        client1.on('connect', (data) => {
+          client1.emit('message:sendMsg', { group_id: group._id, txt: 'test' }, (ack) => {
+            should.exist(ack._id);
+          });
+        });
+        client1.on('message:receiveMsg', (msg) => {
+          done();
+        });
+      });
+    });
+
+    describe('# message:typing', () => {
+      it('should get typing', (done) => {
+        const sOption = { transports: ['websocket'], 'force new connection': true };
+        sOption.query = `token=${credential.accessToken}`;
+        const client = ioClient.connect(socketURL, sOption);
+        client.on('message:typing', (msg) => {
+          should.exist(msg.group_id);
+          should.exist(msg.user);
+          done();
+        });
+
+        const sOption1 = { transports: ['websocket'], 'force new connection': true };
+        sOption1.query = `token=${credential1.accessToken}`;
+        const client1 = ioClient.connect(socketURL, sOption1);
+        client1.on('connect', (data) => {
+          client1.emit('message:typing', { group_id: group._id }, (ack) => {
+            expect(ack).to.equal(true);
+          });
+        });
+        client1.on('message:typing', (msg) => {
+          done();
+        });
+      });
+    });
+
+    describe('# message:getMsg', () => {
+      it('should get message', (done) => {
+        const sOption = { transports: ['websocket'], 'force new connection': true };
+        sOption.query = `token=${credential.accessToken}`;
+        const client = ioClient.connect(socketURL, sOption);
+        client.emit('message:getMsg', { group_id: group._id }, (ack) => {
+          expect(ack).to.have.length.above(0);
+          done();
+        });
+      });
+    });
+  });
 
 	describe('## Groups', () => {
 		describe('# DELETE /v0.1.0/groups/:groupId', () => {
@@ -841,19 +916,6 @@ describe('## v0.1.0 APIs', () => {
 					done();
 				});
 			});
-		});
-	});
-
-	after(() => {
-		RefreshToken.remove({}, (err) => {
-		});
-		User.remove({}, (err) => {
-		});
-		Event.remove({}, (err) => {
-		});
-		Group.remove({}, (err) => {
-		});
-    Vote.remove({}, (err) => {
 		});
 	});
 });

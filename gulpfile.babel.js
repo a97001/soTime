@@ -31,7 +31,7 @@ const options = {
 
 gulp.task('apidoc', (done) => {
 	apidoc({
-		src: 'server/routes',
+		src: 'server',
 		dest: 'public/',
 		config: './'
 	}, done);

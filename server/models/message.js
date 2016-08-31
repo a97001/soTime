@@ -22,15 +22,15 @@ const MessageSchema = new Schema({
 		ref: 'Group'
   },
   type: {
-    type: String
+    type: String,
+    default: 'txt'
   },
-  text: {
+  txt: {
     type: String
   },
   attachments: [{
     type: Schema.Types.ObjectId,
-    ref: 'FsFile',
-    default: null
+    ref: 'FsFile'
   }],
   seenReceivers_id: [{
 		type: Schema.Types.ObjectId,
@@ -41,7 +41,8 @@ const MessageSchema = new Schema({
     ref: 'User'
   }],
   sendAt: {
-    type: Date
+    type: Date,
+    default: new Date()
   }
 });
 

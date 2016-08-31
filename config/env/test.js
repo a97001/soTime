@@ -1,6 +1,6 @@
 export default {
 	env: 'test',
-	db: 'mongodb://sotime.co/test',
+	db: 'mongodb://localhost/test',
 	port: 3000,
 	secret: 'SoTiMe=-=-=-=TeSt'
 };

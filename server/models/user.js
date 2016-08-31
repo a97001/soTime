@@ -133,9 +133,8 @@ const UserSchema = new Schema({
    /**
     * HasRole - check if the user has required role
     *
-    * @param {String} plainText
-    * @return {Boolean}
-    * @api public
+    * param {String} plainText
+    * return {Boolean}
     */
    hasRole(role) {
      const roles = this.roles;
@@ -145,8 +144,7 @@ const UserSchema = new Schema({
    /**
     * IsAdmin - check if the user is an administrator
     *
-    * @return {Boolean}
-    * @api public
+    * return {Boolean}
     */
    isAdmin() {
      return this.roles.indexOf('admin') !== -1;
@@ -155,9 +153,8 @@ const UserSchema = new Schema({
    /**
     * Authenticate - check if the passwords are the same
     *
-    * @param {String} plainText
-    * @return {Boolean}
-    * @api public
+    * param {String} plainText
+    * return {Boolean}
     */
    authenticate(plainText) {
      return this.hashPassword(plainText) === this.hashed_password;
@@ -166,8 +163,7 @@ const UserSchema = new Schema({
    /**
     * Make salt
     *
-    * @return {String}
-    * @api public
+    * return {String}
     */
    makeSalt() {
      return crypto.randomBytes(16).toString('base64');
@@ -176,9 +172,8 @@ const UserSchema = new Schema({
    /**
     * Hash password
     *
-    * @param {String} password
-    * @return {String}
-    * @api public
+    * param {String} password
+    * return {String}
     */
    hashPassword(password) {
      if (!password || !this.salt) return '';
@@ -189,7 +184,7 @@ const UserSchema = new Schema({
    /**
     * Hide security sensitive fields
     *
-    * @returns {*|Array|Binary|Object}
+    * returns {*|Array|Binary|Object}
     */
    toJSON() {
      const obj = this.toObject();
