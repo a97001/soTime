@@ -78,7 +78,7 @@ module.exports = {
 		},
 		body: {
 			title: Joi.string().min(1).max(50).required(),
-			description: Joi.string().required(),
+			description: Joi.string().allow('').required(),
 			type: Joi.string().required(),
 			startTime: Joi.date().iso().required(),
 			allDay: Joi.boolean().required(),
@@ -101,7 +101,7 @@ module.exports = {
 		},
 		body: {
 			title: Joi.string().min(1).max(50).required(),
-			description: Joi.string().required(),
+			description: Joi.string().allow('').required(),
 			type: Joi.string().required(),
 			startTime: Joi.date().iso().required(),
 			allDay: Joi.boolean().required(),
@@ -168,7 +168,7 @@ module.exports = {
 		},
 		body: {
 			title: Joi.string().min(1).max(50).required(),
-			description: Joi.string().required(),
+			description: Joi.string().allow('').required(),
 			type: Joi.string().required(),
 			startTime: Joi.date().iso().required(),
 			allDay: Joi.boolean().required(),
@@ -191,7 +191,7 @@ module.exports = {
 		},
 		body: {
 			title: Joi.string().min(1).max(50).required(),
-			description: Joi.string().required(),
+			description: Joi.string().allow('').required(),
 			type: Joi.string().required(),
 			startTime: Joi.date().iso().required(),
 			allDay: Joi.boolean().required(),
@@ -213,7 +213,7 @@ module.exports = {
 			allowUnknownParams: false,
 		},
 		body: {
-			description: Joi.string().required(),
+			description: Joi.string().allow('').required(),
 			dateOptions: Joi.array().items(Joi.compile(voteSchema).required()).required(),
 			startDate: Joi.date().iso().required(),
 			endDate: Joi.date().min(Joi.ref('startDate')).iso().required(),
