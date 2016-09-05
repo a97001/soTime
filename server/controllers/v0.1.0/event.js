@@ -57,7 +57,7 @@ module.exports = {
 			if (req.query.type) {
 				query.type = req.query.type;
 			}
-			const	events = yield Event.find(query).sort({ from: -1 }).skip(skip).limit(10).lean().exec();
+			const	events = yield Event.find(query).sort({ startTime: -1 }).skip(skip).limit(10).lean().exec();
 			return res.json(events);
 		}).catch((err) => {
 			next(err);

@@ -45,30 +45,6 @@ const EventSchema = new Schema({
   notGoingCounter: {
     type: Number
   },
-	votes: [{
-		name: String,
-		option: {
-      eventStart: Date,
-      eventEnd: Date,
-      venue: {
-        coordinates: {
-          lat: Number,
-          lon: Number
-        },
-        name: String
-      }
-		},
-		voters_id: [{
-			type: Schema.Types.ObjectId,
-			ref: 'User'
-		}],
-    voteCounter: {
-      type: Number
-    }
-	}],
-  totalVoteCounter: {
-    type: Number
-  },
 	startTime: {
 		type: Date
 	},
