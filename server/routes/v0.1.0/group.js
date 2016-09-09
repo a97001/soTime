@@ -331,7 +331,7 @@ router.route('/:groupId/events/:group_eventId')
 
 router.route('/:groupId/events/:group_eventId/banners')
 /**
-* @api {put} /:groupId/events/:group_eventId/banners Update group event banner
+* @api {put} /groups/:groupId/events/:group_eventId/banners Update group event banner
 * @apiVersion 0.1.0
 * @apiGroup Events
 * @apiParam {String[]} uploadedDocs Uploaded Icon
@@ -348,7 +348,7 @@ router.route('/:groupId/events/:group_eventId/banners')
 
 router.route('/:groupId/events/:group_eventId/banners/:bannerId')
 /**
-* @api {get} /:groupId/events/:group_eventId/banners/:bannerId Show group event banner
+* @api {get} /groups/:groupId/events/:group_eventId/banners/:bannerId Show group event banner
 * @apiVersion 0.1.0
 * @apiGroup Events
 * @apiSuccessExample {json} Success
@@ -358,7 +358,7 @@ router.route('/:groupId/events/:group_eventId/banners/:bannerId')
 
 router.route('/:groupId/events/:group_eventId/votes')
 /**
-* @api {post} /:groupId/events/:group_eventId/votes Create group event vote
+* @api {post} /groups/:groupId/events/:group_eventId/votes Create group event vote
 * @apiVersion 0.1.0
 * @apiGroup Votes
 * @apiParam {String} description Vote Description
@@ -389,7 +389,7 @@ router.route('/:groupId/events/:group_eventId/votes')
 	.post(validate(paramValidation.createGroupEventVote), routeChecker.checkGroupPrivilege, groupCtrl.createGroupEventVote)
 
 /**
-* @api {get} /:groupId/events/:group_eventId/votes Show group event votes
+* @api {get} /groups/:groupId/events/:group_eventId/votes Show group event votes
 * @apiVersion 0.1.0
 * @apiGroup Votes
 * @apiSuccessExample {json} Success
@@ -412,7 +412,7 @@ router.route('/:groupId/events/:group_eventId/votes')
 
 router.route('/:groupId/events/:group_eventId/votes/current')
 /**
-* @api {get} /:groupId/events/:group_eventId/votes/current Show group event current vote
+* @api {get} /groups/:groupId/events/:group_eventId/votes/current Show group event current vote
 * @apiVersion 0.1.0
 * @apiGroup Votes
 * @apiSuccessExample {json} Success
@@ -435,7 +435,7 @@ router.route('/:groupId/events/:group_eventId/votes/current')
 	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroupEventCurrentVote)
 
 /**
-* @api {delete} /:groupId/events/:group_eventId/votes/current Delete group event current vote
+* @api {delete} /groups/:groupId/events/:group_eventId/votes/current Delete group event current vote
 * @apiVersion 0.1.0
 * @apiGroup Votes
 * @apiSuccessExample {json} Success
@@ -447,7 +447,7 @@ router.route('/:groupId/events/:group_eventId/votes/current')
 
 router.route('/:groupId/events/:group_eventId/votes/current/response')
 /**
-* @api {put} /:groupId/events/:group_eventId/votes/current/response Update group event current vote response
+* @api {put} /groups/:groupId/events/:group_eventId/votes/current/response Update group event current vote response
 * @apiVersion 0.1.0
 * @apiGroup Votes
 * @apiParam {ObjectId} option Date option _id
@@ -472,7 +472,7 @@ router.route('/:groupId/events/:group_eventId/votes/current/response')
 
 router.route('/:groupId/members')
 /**
-* @api {get} /:groupId/members Show group members
+* @api {get} /groups/:groupId/members Show group members
 * @apiVersion 0.1.0
 * @apiGroup Groups
 */
@@ -480,7 +480,7 @@ router.route('/:groupId/members')
 
 router.route('/:groupId/followers')
 /**
-* @api {get} /:groupId/followers Show group followers
+* @api {get} /groups/:groupId/followers Show group followers
 * @apiVersion 0.1.0
 * @apiGroup Groups
 */

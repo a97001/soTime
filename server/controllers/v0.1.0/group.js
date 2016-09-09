@@ -301,7 +301,7 @@ module.exports = {
       if (req.query.type) {
         query.type = req.query.type;
       }
-      events = yield Event.find(query, 'title description type startTime allDay endTime venue isPublic').lean().exec();
+      events = yield Event.find(query, 'title description type startTime allDay endTime venue isPublic banner').lean().exec();
       return res.json(events);
     }).catch((err) => {
       next(err);
