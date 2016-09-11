@@ -477,9 +477,9 @@ module.exports = {
       if (!vote) {
         return res.status(404).end();
       }
-      result = yield Vote.update({ _id: vote._id, 'dateOptions.voters_id': req.me._id, 'dateOptions._id': req.body.option }, { $pull: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': -1 } }).exec();
+      result = yield Vote.update({ _id: vote._id, dateOptions: { $elemMatch: { _id: req.body.option, voters_id: req.me._id } } }, { $pull: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': -1 } }).exec();
       if (result.nModified !== 1) {
-        result = yield Vote.update({ _id: vote._id, 'dateOptions.voters_id': { $ne: req.me._id }, 'dateOptions._id': req.body.option }, { $addToSet: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': 1 } }).exec();
+        result = yield Vote.update({ _id: vote._id, dateOptions: { $elemMatch: { _id: req.body.option, voters_id: { $ne: req.me._id } } } }, { $addToSet: { 'dateOptions.$.voters_id': req.me._id }, $inc: { 'dateOptions.$.count': 1 } }).exec();
         if (result.nModified !== 1) {
           return res.status(400).json({ err: 'Option may not exists' });
         }

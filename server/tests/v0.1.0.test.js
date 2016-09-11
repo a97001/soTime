@@ -730,7 +730,7 @@ describe('## v0.1.0 APIs', () => {
         request(app)
         .post(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes`)
         .set('Authorization', `Bearer ${credential.accessToken}`)
-        .send({ description: 'gay', startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400), dateOptions: [{ startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }], isAnonymous: false, isPublic: false })
+        .send({ description: 'gay', startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400), dateOptions: [{ startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }, { startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }], isAnonymous: false, isPublic: false })
         .expect(httpStatus.CREATED)
         .then(res => {
           should.exist(res.body._id);
@@ -781,6 +781,20 @@ describe('## v0.1.0 APIs', () => {
         });
       });
     });
+
+    // describe('# PUT /v0.1.0/groups/:groupId/events/:eventId/votes/current/response', () => {
+    //   it('should update group event current vote response', (done) => {
+    //     request(app)
+    //     .put(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes/current/response`)
+    //     .set('Authorization', `Bearer ${credential.accessToken}`)
+    //     .send({ option: vote.dateOptions[1]._id })
+    //     .expect(httpStatus.OK)
+    //     .then(res => {
+    //       console.log(res.body);
+    //       done();
+    //     });
+    //   });
+    // });
 
     describe('# DELETE /v0.1.0/groups/:groupId/events/:eventId/votes/current', () => {
       it('should delete group event current vote', (done) => {
