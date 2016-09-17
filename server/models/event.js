@@ -50,8 +50,6 @@ const EventSchema = new Schema({
 	},
 	allDay: Boolean,
 	endTime: Date,
-	voteStart: Date,
-	voteEnd: Date,
 	venue: {
 		coordinates: {
 			lat: Number,

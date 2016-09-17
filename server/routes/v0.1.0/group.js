@@ -415,22 +415,8 @@ router.route('/:groupId/events/:group_eventId/votes/current')
 * @api {get} /groups/:groupId/events/:group_eventId/votes/current Show group event current vote
 * @apiVersion 0.1.0
 * @apiGroup Votes
-* @apiSuccessExample {json} Success
-*    {
-*      description: 'gay',
-*      creator_id: 57c44f5d3f4d969410694dc8,
-*      event_id: 57c44f6f3f4d969410694dd5,
-*      _id: 57c44f743f4d969410694dd8,
-*      isAnonymous: false,
-*      isPublic: false,
-*      dateOptions:
-*      [{ startDate: 1999-06-23T16:00:00.000Z,
-*         endDate: 2016-08-29T15:06:28.227Z,
-*         _id: 57c44f743f4d969410694dd9,
-*         count: 0,
-*         voters_id: []
-*    	}]
-*    }
+* @apiSuccess {Object} vote Vote
+* @apiSuccess {Object} formattedVote Formatted vote
 */
 	.get(routeChecker.checkGroupPrivilege, groupCtrl.showGroupEventCurrentVote)
 

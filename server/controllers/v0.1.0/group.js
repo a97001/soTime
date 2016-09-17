@@ -472,7 +472,7 @@ module.exports = {
       } else {
         vote = yield Vote.findOne({ _id: vote._id }).populate('creator_id', 'username').lean().exec();
       }
-      return res.json(vote);
+      return res.json({ vote, formattedVote: voteToEventFormat(vote) });
     }).catch((err) => {
       next(err);
     });
@@ -562,3 +562,27 @@ module.exports = {
     });
   }
 };
+
+function voteToEventFormat(vote) {
+  const formattedVote = [];
+  for (let i = 0; i < vote.dateOptions.length; i++) {
+    const format = {
+      title: '',
+      description: vote.description,
+      type: '',
+      startTime: vote.dateOptions[i].startDate,
+      endTime: vote.dateOptions[i].endDate,
+      allDay: false,
+      event_id: vote.event_id,
+      creator_id: vote.creator_id,
+      count: vote.dateOptions[i].count,
+      voters_id: vote.dateOptions[i].voters_id,
+      voteStart: vote.startDate,
+      voteEnd: vote.voteEnd,
+      isPublic: vote.isPublic,
+      isAnonymous: vote.isAnonymous
+    };
+    formattedVote.push(format);
+  }
+  return formattedVote;
+}

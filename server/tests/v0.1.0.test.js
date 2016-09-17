@@ -760,7 +760,7 @@ describe('## v0.1.0 APIs', () => {
         .set('Authorization', `Bearer ${credential.accessToken}`)
         .expect(httpStatus.OK)
         .then(res => {
-          should.exist(res.body._id);
+          should.exist(res.body.vote._id);
           done();
         });
       });
