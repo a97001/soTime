@@ -1,5 +1,6 @@
 const co = require('co');
 const moment = require('moment');
+const async = require('async');
 const imageUploader = require('../../helpers/ImageUploader');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
@@ -302,7 +303,24 @@ module.exports = {
         query.type = req.query.type;
       }
       events = yield Event.find(query, 'title description type startTime allDay endTime venue isPublic banner').lean().exec();
-      return res.json(events);
+      if (req.groupPrivilege === 'm') {
+        async.each(events, (event, callback) => {
+          Vote.findOne({ event_id: event._id, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } }, '-dateOptions.voters_id').populate('creator_id', 'username').lean().exec((err, vote) => {
+            if (vote) {
+              event.currentVote = vote;
+              return callback();
+            }
+            event.currentVote = null;
+            return callback();
+          });
+        }, (err) => {
+          if (err) {
+            console.log(err);
+          }
+          return res.json(events);
+        });
+      }
+      return 0;
     }).catch((err) => {
       next(err);
     });
