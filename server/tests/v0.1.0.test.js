@@ -730,7 +730,7 @@ describe('## v0.1.0 APIs', () => {
         request(app)
         .post(`/v0.1.0/groups/${group._id}/events/${groupEvent._id}/votes`)
         .set('Authorization', `Bearer ${credential.accessToken}`)
-        .send({ description: 'gay', startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400), dateOptions: [{ startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }, { startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }], isAnonymous: false, isPublic: false })
+        .send({ description: 'gay', startDate: new Date(), endDate: new Date(Date.now() + 86400), dateOptions: [{ startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }, { startDate: new Date(99, 5, 24), endDate: new Date(Date.now() + 86400) }], isAnonymous: false, isPublic: false })
         .expect(httpStatus.CREATED)
         .then(res => {
           should.exist(res.body._id);

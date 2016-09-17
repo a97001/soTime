@@ -1,5 +1,4 @@
 const co = require('co');
-const moment = require('moment');
 const async = require('async');
 const imageUploader = require('../../helpers/ImageUploader');
 const Grid = require('gridfs-stream');
@@ -472,6 +471,8 @@ module.exports = {
       } else {
         vote = yield Vote.findOne({ _id: vote._id }).populate('creator_id', 'username').lean().exec();
       }
+      vote.memberCounter = req.group.memberCounter;
+      console.log(vote);
       return res.json({ vote, formattedVote: voteToEventFormat(vote) });
     }).catch((err) => {
       next(err);
@@ -576,6 +577,7 @@ function voteToEventFormat(vote) {
       event_id: vote.event_id,
       creator_id: vote.creator_id,
       count: vote.dateOptions[i].count,
+      memberCounter: vote.memberCounter,
       voters_id: vote.dateOptions[i].voters_id,
       voteStart: vote.startDate,
       voteEnd: vote.voteEnd,

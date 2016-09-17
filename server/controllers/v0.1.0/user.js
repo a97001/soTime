@@ -7,10 +7,10 @@ const crypto = require('crypto');
 const imageUploader = require('../../helpers/ImageUploader');
 const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
-const _ = require('lodash');
 const config = require('../../../config/env');
 
 const User = require('../../models/user');
+const Group = require('../../models/group');
 const FsFile = require('../../models/fsfile');
 const RefreshToken = require('../../models/refreshToken');
 const Event = require('../../models/event');
@@ -404,6 +404,7 @@ module.exports = {
     co(function* () {
       const result = yield User.update({ _id: req.me._id, groupInvitations_id: objectId(req.params.invitation_groupId) }, { $pull: { groupInvitations_id: objectId(req.params.invitation_groupId) }, $addToSet: { groups_id: objectId(req.params.invitation_groupId) } }).exec();
       if (result.nModified === 1) {
+        yield Group.update({ _id: req.params.invitation_groupId }, { $inc: { memberCounter: 1 } }).exec();
         return res.json({ acceptedGroup: req.params.invitation_groupId });
       }
       return res.status(400).end();
@@ -440,6 +441,7 @@ module.exports = {
       }
       const result = yield User.update({ _id: req.me._id, groups_id: { $ne: req.group._id }, follows_id: { $ne: req.group._id } }, { $addToSet: { follows_id: req.group._id } }).exec();
       if (result.nModified === 1) {
+        yield Group.update({ _id: req.params.invitation_groupId }, { $inc: { followerCounter: 1 } }).exec();
         return res.json({ followedGroup: req.group._id });
       }
       return res.status(400).end();
@@ -461,6 +463,7 @@ module.exports = {
       }
       const result = yield User.update({ _id: req.me._id, groups_id: { $ne: req.group._id }, follows_id: req.group._id }, { $pull: { follows_id: req.group._id } }).exec();
       if (result.nModified === 1) {
+        yield Group.update({ _id: req.params.invitation_groupId }, { $inc: { followerCounter: -1 } }).exec();
         return res.json({ unfollowedGroup: req.group._id });
       }
       return res.status(400).end();
