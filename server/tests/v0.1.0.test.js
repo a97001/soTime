@@ -10,7 +10,7 @@ chai.config.includeStack = true;
 
 const expect = chai.expect;
 const should = chai.should();
-const socketURL = 'http://localhost:3000/v0.1.0';
+const socketURL = 'http://localhost:3000/v0.1.0/chat';
 const socketOptions = {
   transports: ['websocket'],
   'force new connection': true

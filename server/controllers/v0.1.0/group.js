@@ -472,7 +472,6 @@ module.exports = {
         vote = yield Vote.findOne({ _id: vote._id }).populate('creator_id', 'username').lean().exec();
       }
       vote.memberCounter = req.group.memberCounter;
-      console.log(vote);
       return res.json({ vote, formattedVote: voteToEventFormat(vote) });
     }).catch((err) => {
       next(err);
