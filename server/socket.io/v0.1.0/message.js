@@ -150,8 +150,8 @@ const message = (io, socket, query, me) => {
 	* @apiGroup Chats
 	* @apiParam {ObjectId} group_id Group ID
 	* @apiParam {Object} [msg_id] Message ID object (Get recent 25 messages if omitted)
-	* @apiParam {Object} [msg_id._dollar_sign_lt] Message ID (limits to 25 results)
-	* @apiParam {Object} [msg_id._dollar_sign_gt] Message ID (limits to 200 results)
+	* @apiParam {ObjectId} [msg_id._dollar_sign_lt] Message ID (limits to 25 results)
+	* @apiParam {ObjectId} [msg_id._dollar_sign_gt] Message ID (limits to 200 results)
 	* @apiSuccessExample {json} Success
 	*    [{
 	*      group_id: '57c6d20a45886b802bb035ad',
