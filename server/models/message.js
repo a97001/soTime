@@ -42,7 +42,7 @@ const MessageSchema = new Schema({
   }],
   sendAt: {
     type: Date,
-    default: new Date()
+    default: Date.now
   }
 });
 
