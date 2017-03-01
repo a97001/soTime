@@ -218,6 +218,7 @@ router.route('/:groupId/events')
 * @apiVersion 0.1.0
 * @apiGroup Events
 * @apiParam {String} title Event Title
+* @apiParam {String} type Event Type
 * @apiParam {String} description Event Description
 * @apiParam {Date} startTime Event Start Time
 * @apiParam {Boolean} allDay Is All Day Event
@@ -271,6 +272,7 @@ router.route('/:groupId/events/:group_eventId')
 * @apiVersion 0.1.0
 * @apiGroup Events
 * @apiParam {String} title Event Title
+* @apiParam {String} type Event Type
 * @apiParam {String} description Event Description
 * @apiParam {Date} startTime Event Start Time
 * @apiParam {Boolean} allDay Is All Day Event
