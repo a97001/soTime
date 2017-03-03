@@ -9,7 +9,7 @@ const RefreshToken = require('../../models/refreshToken');
 const uploaderOptions = {
   tmpDir: '',
   uploadDir: '',
-  uploadUrl: '/v1/upload/document/',
+  uploadUrl: '/v0.1.0/uploads/document/',
   useSSL: true,
   copyImgAsThumb: false,
   imageVersions: {
